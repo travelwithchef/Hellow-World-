@@ -174,17 +174,31 @@
         #upload-zone:hover {
             border-color: #ff00cc;
         }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            padding: 5px;
+            border: 1px solid #00ffcc;
+            text-align: left;
+        }
     </style>
 </head>
 <body>
     <div id="sidebar">
         <ul>
             <li onclick="toggleFilterPanel()">Fractal Cascade Filter</li>
-            <li onclick="addVisualization()">Add Visualization</li>
+            <li onclick="addContinentChart()">Continent Population Chart</li>
+            <li onclick="addHeatmap()">Population Heatmap</li>
+            <li onclick="addTopNTable()">Top 5 Capitals</li>
             <li onclick="resetCanvas()">Reset Canvas</li>
             <li>
-                Paste主 Paste Data (CSV):
-                <textarea id="data-input" placeholder="Paste CSV data here (e.g., id,sales,region,connections)"></textarea>
+                Paste Data (CSV):
+                <textarea id="data-input" placeholder="Paste CSV data (e.g., id,country,capital,population,continent,connections)"></textarea>
                 <button id="submit-data">Submit Data</button>
             </li>
         </ul>
@@ -197,7 +211,7 @@
 
     <div id="filter-panel">
         <h3>Fractal Relevance Cascade</h3>
-        <input type="text" id="filter-query" placeholder="Enter query (e.g., sales > 1000)">
+        <input type="text" id="filter-query" placeholder="Enter query (e.g., population > 5000000)">
         <input type="range" id="fractal-depth" min="1" max="10" value="5">
         <label for="fractal-depth">Cascade Depth: <span id="depth-value">5</span></label>
         <button onclick="applyFractalFilter()">Apply Filter</button>
@@ -210,285 +224,112 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script>
-        // Sample dataset (used until data is pasted or uploaded)
+        // Integrated dataset
         let dataset = [
-            { id: 1, sales: 1200, region: "North", connections: [2, 3] },
-            { id: 2, sales: 800, region: "South", connections: [1, 4] },
-            { id: 3, sales: 1500, region: "East", connections: [1] },
-            { id: 4, sales: 600, region: "West", connections: [2] },
-            { id: 5, sales: 2000, region: "North", connections: [3] }
-        ];
-
-        // Three.js Globe Setup
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ alpha: true });
-        renderer.setSize(400, 400);
-        document.getElementById('holographic-globe').appendChild(renderer.domElement);
-
-        const geometry = new THREE.SphereGeometry(1, 32, 32);
-        const material = new THREE.MeshBasicMaterial({ color: 0x00ffcc, wireframe: true });
-        const sphere = new THREE.Mesh(geometry, material);
-        scene.add(sphere);
-
-        let nodes = [];
-        function updateGlobe() {
-            nodes.forEach(n => scene.remove(n));
-            nodes = [];
-            dataset.forEach(d => {
-                const phi = Math.random() * Math.PI * 2;
-                const theta = Math.random() * Math.PI;
-                const x = Math.sin(theta) * Math.cos(phi);
-                const y = Math.sin(theta) * Math.sin(phi);
-                const z = Math.cos(theta);
-                const nodeGeo = new THREE.SphereGeometry(0.05, 16, 16);
-                const nodeMat = new THREE.MeshBasicMaterial({ color: 0xff00cc });
-                const node = new THREE.Mesh(nodeGeo, nodeMat);
-                node.position.set(x, y, z);
-                node.userData = d;
-                scene.add(node);
-                nodes.push(node);
-            });
-        }
-        updateGlobe();
-
-        camera.position.z = 3;
-
-        function animateGlobe() {
-            requestAnimationFrame(animateGlobe);
-            sphere.rotation.y += 0.01;
-            nodes.forEach(n => {
-                n.rotation.y += 0.02;
-            });
-            renderer.render(scene, camera);
-        }
-        animateGlobe();
-
-        // Infinite Canvas with Pan and Zoom
-        let transform = { x: 0, y: 0, scale: 1 };
-        const canvas = document.getElementById('visualization-canvas');
-        let isDragging = false;
-        let startX, startY;
-
-        canvas.addEventListener('mousedown', e => {
-            isDragging = true;
-            startX = e.clientX - transform.x;
-            startY = e.clientY - transform.y;
-        });
-
-        canvas.addEventListener('mousemove', e => {
-            if (isDragging) {
-                transform.x = e.clientX - startX;
-                transform.y = e.clientY - startY;
-                updateCanvas();
-            }
-        });
-
-        canvas.addEventListener('mouseup', () => isDragging = false);
-        canvas.addEventListener('wheel', e => {
-            e.preventDefault();
-            const zoomSpeed = 0.1;
-            transform.scale *= e.deltaY > 0 ? 1 - zoomSpeed : 1 + zoomSpeed;
-            updateCanvas();
-        });
-
-        function updateCanvas() {
-            const visElements = document.querySelectorAll('.visualization');
-            visElements.forEach(el => {
-                const x = parseFloat(el.dataset.x);
-                const y = parseFloat(el.dataset.y);
-                el.style.transform = `translate(${transform.x + x * transform.scale}px, ${transform.y + y * transform.scale}px) scale(${transform.scale})`;
-            });
-        }
-
-        // Add Visualization
-        function addVisualization() {
-            const visDiv = document.createElement('div');
-            visDiv.className = 'visualization';
-            visDiv.style.width = '200px';
-            visDiv.style.height = '200px';
-            visDiv.dataset.x = Math.random() * 500;
-            visDiv.dataset.y = Math.random() * 500;
-
-            const svg = d3.select(visDiv)
-                .append('svg')
-                .attr('width', 200)
-                .attr('height', 200);
-
-            const bars = svg.selectAll('rect')
-                .data(dataset)
-                .enter()
-                .append('rect')
-                .attr('x', (d, i) => i * 40)
-                .attr('y', d => 200 - d.sales / 20)
-                .attr('width', 35)
-                .attr('height', d => d.sales / 20)
-                .attr('fill', '#00ffcc');
-
-            canvas.appendChild(visDiv);
-            makeDraggable(visDiv);
-            updateCanvas();
-        }
-
-        // Make Visualizations Draggable
-        function makeDraggable(el) {
-            let isDragging = false;
-            let startX, startY;
-
-            el.addEventListener('mousedown', e => {
-                isDragging = true;
-                startX = e.clientX - parseFloat(el.dataset.x);
-                startY = e.clientY - parseFloat(el.dataset.y);
-                e.stopPropagation();
-            });
-
-            document.addEventListener('mousemove', e => {
-                if (isDragging) {
-                    el.dataset.x = (e.clientX - startX) / transform.scale;
-                    el.dataset.y = (e.clientY - startY) / transform.scale;
-                    updateCanvas();
-                }
-            });
-
-            document.addEventListener('mouseup', () => isDragging = false);
-        }
-
-        // Fractal Relevance Cascade (Simplified)
-        function fractalRelevanceCascade(query, depth) {
-            const condition = query.match(/(\w+)\s*(>|<|=)\s*(\d+)/);
-            if (!condition) return dataset;
-
-            const field = condition[1];
-            const operator = condition[2];
-            const value = parseInt(condition[3]);
-
-            const scores = new Map(dataset.map(d => [d.id, 0]));
-            const filtered = dataset.filter(d => {
-                if (operator === '>') return d[field] > value;
-                if (operator === '<') return d[field] < value;
-                if (operator === '=') return d[field] === value;
-            });
-
-            filtered.forEach(d => scores.set(d.id, 1));
-
-            for (let i = 0; i < depth; i++) {
-                const newScores = new Map(scores);
-                dataset.forEach(d => {
-                    let total = scores.get(d.id);
-                    d.connections.forEach(c => {
-                        total += (scores.get(c) || 0) * 0.5;
-                    });
-                    newScores.set(d.id, total);
-                });
-                scores.clear();
-                newScores.forEach((v, k) => scores.set(k, v));
-            }
-
-            return dataset
-                .map(d => ({ ...d, relevance: scores.get(d.id) }))
-                .sort((a, b) => b.relevance - a.relevance);
-        }
-
-        // Filter Panel
-        function toggleFilterPanel() {
-            const panel = document.getElementById('filter-panel');
-            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-        }
-
-        document.getElementById('fractal-depth').addEventListener('input', e => {
-            document.getElementById('depth-value').textContent = e.target.value;
-        });
-
-        function applyFractalFilter() {
-            const query = document.getElementById('filter-query').value;
-            const depth = parseInt(document.getElementById('fractal-depth').value);
-            const filteredData = fractalRelevanceCascade(query, depth);
-            console.log('Filtered Data:', filteredData);
-            nodes.forEach(n => {
-                const d = filteredData.find(fd => fd.id === n.userData.id);
-                n.material.color.set(d.relevance > 0 ? 0x00ffcc : 0xff00cc);
-            });
-        }
-
-        // Reset Canvas
-        function resetCanvas() {
-            canvas.innerHTML = '';
-            transform = { x: 0, y: 0, scale: 1 };
-            updateCanvas();
-        }
-
-        // Paste Data
-        document.getElementById('submit-data').addEventListener('click', () => {
-            const text = document.getElementById('data-input').value.trim();
-            if (!text) {
-                alert('Please paste some data.');
-                return;
-            }
-            Papa.parse(text, {
-                header: true,
-                dynamicTyping: true,
-                complete: result => {
-                    dataset = result.data.map(d => ({
-                        id: d.id,
-                        sales: d.sales,
-                        region: d.region,
-                        connections: d.connections ? String(d.connections).split(',').map(Number).filter(n => !isNaN(n)) : []
-                    })).filter(d => d.id && d.sales && d.region); // Remove invalid rows
-                    if (dataset.length === 0) {
-                        alert('No valid data found. Ensure CSV has id,sales,region,connections columns.');
-                        return;
-                    }
-                    console.log('Pasted Data:', dataset);
-                    updateGlobe();
-                    resetCanvas();
-                    addVisualization();
-                    alert('Data pasted successfully!');
-                    document.getElementById('data-input').value = ''; // Clear textarea
-                },
-                error: err => {
-                    alert('Error parsing data: ' + err.message);
-                }
-            });
-        });
-
-        // File Upload with PapaParse
-        const uploadZone = document.getElementById('upload-zone');
-        uploadZone.addEventListener('dragover', e => e.preventDefault());
-        uploadZone.addEventListener('drop', e => {
-            e.preventDefault();
-            const file = e.dataTransfer.files[0];
-            if (file && file.type === 'text/csv') {
-                Papa.parse(file, {
-                    header: true,
-                    dynamicTyping: true,
-                    complete: result => {
-                        dataset = result.data.map(d => ({
-                            id: d.id,
-                            sales: d.sales,
-                            region: d.region,
-                            connections: d.connections ? String(d.connections).split(',').map(Number).filter(n => !isNaN(n)) : []
-                        })).filter(d => d.id && d.sales && d.region);
-                        if (dataset.length === 0) {
-                            alert('No valid data found in CSV.');
-                            return;
-                        }
-                        console.log('Uploaded Data:', dataset);
-                        updateGlobe();
-                        resetCanvas();
-                        addVisualization();
-                        alert('Data uploaded successfully!');
-                    },
-                    error: err => {
-                        alert('Error parsing CSV: ' + err.message);
-                    }
-                });
-            } else {
-                alert('Please upload a valid CSV file.');
-            }
-        });
-
-        // Initialize
-        addVisualization();
-    </script>
-</body>
-</html>
+            { id: 1, country: "Algeria", capital: "Algiers", population: 2000000, continent: "Africa", connections: [35, 49] },
+            { id: 2, country: "Angola", capital: "Luanda", population: 8952000, continent: "Africa", connections: [14, 53] },
+            { id: 3, country: "Benin", capital: "Porto-Novo", population: 264000, continent: "Africa", connections: [39, 48] },
+            { id: 4, country: "Botswana", capital: "Gaborone", population: 231000, continent: "Africa", connections: [37, 53] },
+            { id: 5, country: "Burkina Faso", capital: "Ouagadougou", population: 2200000, continent: "Africa", connections: [13, 32] },
+            { id: 6, country: "Burundi", capital: "Gitega", population: 150000, continent: "Africa", connections: [41, 49] },
+            { id: 7, country: "Cabo Verde", capital: "Praia", population: 159000, continent: "Africa", connections: [42] },
+            { id: 8, country: "Cameroon", capital: "Yaoundé", population: 2500000, continent: "Africa", connections: [9, 16] },
+            { id: 9, country: "Central African Republic", capital: "Bangui", population: 900000, continent: "Africa", connections: [8, 14] },
+            { id: 10, country: "Chad", capital: "N'Djamena", population: 1500000, continent: "Africa", connections: [9, 47] },
+            { id: 11, country: "Comoros", capital: "Moroni", population: 111000, continent: "Africa", connections: [30] },
+            { id: 12, country: "Congo (Republic of the)", capital: "Brazzaville", population: 2000000, continent: "Africa", connections: [14] },
+            { id: 13, country: "Côte d'Ivoire", capital: "Yamoussoukro", population: 355000, continent: "Africa", connections: [5, 23] },
+            { id: 14, country: "Democratic Republic of the Congo", capital: "Kinshasa", population: 15628000, continent: "Africa", connections: [2, 12] },
+            { id: 15, country: "Djibouti", capital: "Djibouti", population: 600000, continent: "Africa", connections: [18, 45] },
+            { id: 16, country: "Egypt", capital: "Cairo", population: 21750000, continent: "Africa", connections: [29, 47] },
+            { id: 17, country: "Equatorial Guinea", capital: "Malabo", population: 187000, continent: "Africa", connections: [8] },
+            { id: 18, country: "Eritrea", capital: "Asmara", population: 800000, continent: "Africa", connections: [15, 49] },
+            { id: 19, country: "Eswatini", capital: "Mbabane", population: 94000, continent: "Africa", connections: [46] },
+            { id: 20, country: "Ethiopia", capital: "Addis Ababa", population: 5000000, continent: "Africa", connections: [26, 45] },
+            { id: 21, country: "Gabon", capital: "Libreville", population: 700000, continent: "Africa", connections: [12] },
+            { id: 22, country: "Gambia", capital: "Banjul", population: 34000, continent: "Africa", connections: [42] },
+            { id: 23, country: "Ghana", capital: "Accra", population: 4200000, continent: "Africa", connections: [13, 48] },
+            { id: 24, country: "Guinea", capital: "Conakry", population: 1800000, continent: "Africa", connections: [25, 43] },
+            { id: 25, country: "Guinea-Bissau", capital: "Bissau", population: 492000, continent: "Africa", connections: [24, 42] },
+            { id: 26, country: "Kenya", capital: "Nairobi", population: 9600000, continent: "Africa", connections: [20, 49] },
+            { id: 27, country: "Lesotho", capital: "Maseru", population: 330000, continent: "Africa", connections: [46] },
+            { id: 28, country: "Liberia", capital: "Monrovia", population: 1200000, continent: "Africa", connections: [24] },
+            { id: 29, country: "Libya", capital: "Tripoli", population: 1200000, continent: "Africa", connections: [16, 35] },
+            { id: 30, country: "Madagascar", capital: "Antananarivo", population: 1400000, continent: "Africa", connections: [11] },
+            { id: 31, country: "Malawi", capital: "Lilongwe", population: 1100000, continent: "Africa", connections: [36, 53] },
+            { id: 32, country: "Mali", capital: "Bamako", population: 2700000, continent: "Africa", connections: [5, 33] },
+            { id: 33, country: "Mauritania", capital: "Nouakchott", population: 1200000, continent: "Africa", connections: [32, 42] },
+            { id: 34, country: "Mauritius", capital: "Port Louis", population: 149000, continent: "Africa", connections: [11] },
+            { id: 35, country: "Morocco", capital: "Rabat", population: 1700000, continent: "Africa", connections: [1, 29] },
+            { id: 36, country: "Mozambique", capital: "Maputo", population: 1200000, continent: "Africa", connections: [31, 46] },
+            { id: 37, country: "Namibia", capital: "Windhoek", population: 400000, continent: "Africa", connections: [4, 46] },
+            { id: 38, country: "Niger", capital: "Niamey", population: 1300000, continent: "Africa", connections: [39, 47] },
+            { id: 39, country: "Nigeria", capital: "Abuja", population: 3000000, continent: "Africa", connections: [3, 38] },
+            { id: 40, country: "Rwanda", capital: "Kigali", population: 1200000, continent: "Africa", connections: [6, 49] },
+            { id: 41, country: "Sao Tome and Principe", capital: "São Tomé", population: 71000, continent: "Africa", connections: [17] },
+            { id: 42, country: "Senegal", capital: "Dakar", population: 3200000, continent: "Africa", connections: [22, 33] },
+            { id: 43, country: "Seychelles", capital: "Victoria", population: 26000, continent: "Africa", connections: [11] },
+            { id: 44, country: "Sierra Leone", capital: "Freetown", population: 1200000, continent: "Africa", connections: [24, 28] },
+            { id: 45, country: "Somalia", capital: "Mogadishu", population: 2500000, continent: "Africa", connections: [15, 26] },
+            { id: 46, country: "South Africa", capital: "Pretoria", population: 1600000, continent: "Africa", connections: [19, 36] },
+            { id: 47, country: "South Sudan", capital: "Juba", population: 525000, continent: "Africa", connections: [10, 16] },
+            { id: 48, country: "Sudan", capital: "Khartoum", population: 2000000, continent: "Africa", connections: [16, 47] },
+            { id: 49, country: "Tanzania", capital: "Dodoma", population: 2700000, continent: "Africa", connections: [6, 26] },
+            { id: 50, country: "Togo", capital: "Lomé", population: 1800000, continent: "Africa", connections: [3, 23] },
+            { id: 51, country: "Tunisia", capital: "Tunis", population: 1200000, continent: "Africa", connections: [1, 29] },
+            { id: 52, country: "Uganda", capital: "Kampala", population: 3500000, continent: "Africa", connections: [26, 40] },
+            { id: 53, country: "Zambia", capital: "Lusaka", population: 2500000, continent: "Africa", connections: [2, 31] },
+            { id: 54, country: "Zimbabwe", capital: "Harare", population: 1500000, continent: "Africa", connections: [31, 36] },
+            { id: 55, country: "Afghanistan", capital: "Kabul", population: 4600000, continent: "Asia", connections: [81, 94] },
+            { id: 56, country: "Armenia", capital: "Yerevan", population: 1100000, continent: "Asia", connections: [58, 61] },
+            { id: 57, country: "Azerbaijan", capital: "Baku", population: 2300000, continent: "Asia", connections: [56, 61] },
+            { id: 58, country: "Bahrain", capital: "Manama", population: 200000, continent: "Asia", connections: [83, 88] },
+            { id: 59, country: "Bangladesh", capital: "Dhaka", population: 22000000, continent: "Asia", connections: [65, 80] },
+            { id: 60, country: "Bhutan", capital: "Thimphu", population: 115000, continent: "Asia", connections: [65] },
+            { id: 61, country: "Brunei", capital: "Bandar Seri Begawan", population: 100000, continent: "Asia", connections: [73, 85] },
+            { id: 62, country: "Cambodia", capital: "Phnom Penh", population: 2200000, continent: "Asia", connections: [70, 96] },
+            { id: 63, country: "China", capital: "Beijing", population: 21900000, continent: "Asia", connections: [78, 86] },
+            { id: 64, country: "Cyprus", capital: "Nicosia", population: 330000, continent: "Asia", connections: [90] },
+            { id: 65, country: "Georgia", capital: "Tbilisi", population: 1200000, continent: "Asia", connections: [56, 57] },
+            { id: 66, country: "India", capital: "New Delhi", population: 31000000, continent: "Asia", connections: [59, 81] },
+            { id: 67, country: "Indonesia", capital: "Jakarta", population: 10600000, continent: "Asia", connections: [73, 85] },
+            { id: 68, country: "Iran", capital: "Tehran", population: 9000000, continent: "Asia", connections: [55, 69] },
+            { id: 69, country: "Iraq", capital: "Baghdad", population: 8100000, continent: "Asia", connections: [68, 83] },
+            { id: 70, country: "Japan", capital: "Tokyo", population: 37400000, continent: "Asia", connections: [63, 86] },
+            { id: 71, country: "Jordan", capital: "Amman", population: 4000000, continent: "Asia", connections: [69, 90] },
+            { id: 72, country: "Kazakhstan", capital: "Astana", population: 1400000, continent: "Asia", connections: [75, 94] },
+            { id: 73, country: "Kuwait", capital: "Kuwait City", population: 3000000, continent: "Asia", connections: [58, 83] },
+            { id: 74, country: "Kyrgyzstan", capital: "Bishkek", population: 1100000, continent: "Asia", connections: [72, 94] },
+            { id: 75, country: "Laos", capital: "Vientiane", population: 820000, continent: "Asia", connections: [62, 96] },
+            { id: 76, country: "Lebanon", capital: "Beirut", population: 2400000, continent: "Asia", connections: [71, 90] },
+            { id: 77, country: "Malaysia", capital: "Kuala Lumpur", population: 8000000, continent: "Asia", connections: [67, 85] },
+            { id: 78, country: "Maldives", capital: "Malé", population: 215000, continent: "Asia", connections: [89] },
+            { id: 79, country: "Mongolia", capital: "Ulaanbaatar", population: 1500000, continent: "Asia", connections: [63] },
+            { id: 80, country: "Myanmar", capital: "Naypyidaw", population: 1200000, continent: "Asia", connections: [59, 96] },
+            { id: 81, country: "Nepal", capital: "Kathmandu", population: 1500000, continent: "Asia", connections: [60, 66] },
+            { id: 82, country: "North Korea", capital: "Pyongyang", population: 3200000, continent: "Asia", connections: [63] },
+            { id: 83, country: "Oman", capital: "Muscat", population: 1500000, continent: "Asia", connections: [58, 95] },
+            { id: 84, country: "Pakistan", capital: "Islamabad", population: 1200000, continent: "Asia", connections: [55, 66] },
+            { id: 85, country: "Palestine", capital: "East Jerusalem", population: 600000, continent: "Asia", connections: [71, 76] },
+            { id: 86, country: "Philippines", capital: "Manila", population: 1900000, continent: "Asia", connections: [67, 77] },
+            { id: 87, country: "Qatar", capital: "Doha", population: 1200000, continent: "Asia", connections: [58, 88] },
+            { id: 88, country: "Saudi Arabia", capital: "Riyadh", population: 7700000, continent: "Asia", connections: [73, 87] },
+            { id: 89, country: "Singapore", capital: "Singapore", population: 5900000, continent: "Asia", connections: [77] },
+            { id: 90, country: "South Korea", capital: "Seoul", population: 9700000, continent: "Asia", connections: [70, 82] },
+            { id: 91, country: "Sri Lanka", capital: "Sri Jayawardenepura Kotte", population: 115000, continent: "Asia", connections: [78] },
+            { id: 92, country: "Syria", capital: "Damascus", population: 2100000, continent: "Asia", connections: [76, 85] },
+            { id: 93, country: "Taiwan", capital: "Taipei", population: 2600000, continent: "Asia", connections: [70] },
+            { id: 94, country: "Tajikistan", capital: "Dushanbe", population: 1200000, continent: "Asia", connections: [55, 74] },
+            { id: 95, country: "Thailand", capital: "Bangkok", population: 10700000, continent: "Asia", connections: [62, 77] },
+            { id: 96, country: "Timor-Leste", capital: "Dili", population: 222000, continent: "Asia", connections: [67] },
+            { id: 97, country: "Turkey", capital: "Ankara", population: 5700000, continent: "Asia", connections: [57, 92] },
+            { id: 98, country: "Turkmenistan", capital: "Ashgabat", population: 1000000, continent: "Asia", connections: [68, 94] },
+            { id: 99, country: "United Arab Emirates", capital: "Abu Dhabi", population: 1500000, continent: "Asia", connections: [83, 87] },
+            { id: 100, country: "Uzbekistan", capital: "Tashkent", population: 2900000, continent: "Asia", connections: [74, 98] },
+            { id: 101, country: "Vietnam", capital: "Hanoi", population: 8400000, continent: "Asia", connections: [62, 75] },
+            { id: 102, country: "Yemen", capital: "Sana'a", population: 2900000, continent: "Asia", connections: [83, 85] },
+            { id: 103, country: "Albania", capital: "Tirana", population: 557000, continent: "Europe", connections: [108, 130] },
+            { id: 104, country: "Andorra", capital: "Andorra la Vella", population: 22000, continent: "Europe", connections: [116] },
+            { id: 105, country: "Austria", capital: "Vienna", population: 1900000, continent: "Europe", connections: [112, 139] },
+            { id: 106, country: "Belarus", capital: "Minsk", population: 2000000, continent: "Europe", connections: [123, 136] },
+            { id: 107, country: "Belgium", capital: "Brussels", population: 1200000, continent: "Eur
