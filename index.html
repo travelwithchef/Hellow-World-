@@ -3,27 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Data Analysis Dashboard</title>
+    <title>Capital Cities Discovery Dashboard</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
         }
 
         body {
-            background: linear-gradient(45deg, Black & white with grey, #2a4d69, #4a2a5a);
-            background-size: 400%;
-            animation: gradient 30s ease infinite;
-            color: #fff;
+            background: #000000;
+            color: #FFFFFF;
             overflow: hidden;
-        }
-
-        @keyframes gradient {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
         }
 
         #sidebar {
@@ -32,8 +24,7 @@
             top: 0;
             width: 250px;
             height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(10px);
+            background: rgba(0, 0, 0, 0.9);
             transition: left 0.3s ease;
             padding: 20px;
             z-index: 1000;
@@ -44,19 +35,20 @@
         }
 
         #sidebar ul {
-            list-style: alphabetical;
+            list-style: none;
         }
 
         #sidebar li {
             margin: 20px 0;
             font-size: 16px;
             cursor: pointer;
+            color: #F5F5F5;
             transition: color 0.3s;
             position: relative;
         }
 
         #sidebar li:hover {
-            color: #00ffcc;
+            color: #FFFFFF;
         }
 
         #sidebar li:hover::after {
@@ -64,8 +56,8 @@
             position: absolute;
             left: 100%;
             top: 0;
-            background: #00ffcc;
-            color: #000;
+            background: #808080;
+            color: #FFFFFF;
             padding: 5px;
             border-radius: 3px;
             font-size: 12px;
@@ -78,9 +70,9 @@
             height: 100px;
             margin-top: 10px;
             padding: 10px;
-            background: rgba(255, 255, 255, 0.1);
+            background: #808080;
             border: none;
-            color: #fff;
+            color: #FFFFFF;
             resize: none;
             border-radius: 5px;
         }
@@ -89,8 +81,8 @@
             width: 100%;
             padding: 10px;
             margin-top: 10px;
-            background: #00ffcc;
-            color: #000;
+            background: #F5F5F5;
+            color: #000000;
             border: none;
             border-radius: 5px;
             cursor: pointer;
@@ -98,7 +90,7 @@
         }
 
         #submit-data:hover {
-            background: #00ccaa;
+            background: #FFFFFF;
         }
 
         #canvas-container {
@@ -112,8 +104,8 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 400px;
-            height: 400px;
+            width: 500px;
+            height: 500px;
         }
 
         #visualization-canvas {
@@ -122,7 +114,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.2);
+            background: rgba(0, 0, 0, 0.3);
         }
 
         #filter-panel {
@@ -130,8 +122,7 @@
             right: 20px;
             top: 20px;
             width: 300px;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(10px);
+            background: rgba(0, 0, 0, 0.9);
             padding: 20px;
             border-radius: 10px;
             display: none;
@@ -139,6 +130,7 @@
 
         #filter-panel h3 {
             margin-bottom: 10px;
+            color: #F5F5F5;
         }
 
         #filter-panel input, #filter-panel button {
@@ -147,25 +139,25 @@
             margin: 5px 0;
             border: none;
             border-radius: 5px;
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
+            background: #808080;
+            color: #FFFFFF;
         }
 
         #filter-panel button {
-            background: #00ffcc;
-            color: #000;
+            background: #F5F5F5;
+            color: #000000;
             cursor: pointer;
             transition: background 0.3s;
         }
 
         #filter-panel button:hover {
-            background: #00ccaa;
+            background: #FFFFFF;
         }
 
         .visualization {
             position: absolute;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid #00ffcc;
+            background: rgba(245, 245, 245, 0.1);
+            border: 1px solid #808080;
             border-radius: 10px;
             padding: 10px;
             cursor: move;
@@ -178,17 +170,17 @@
             left: 20px;
             width: 200px;
             height: 100px;
-            border: 2px dashed #00ffcc;
+            border: 2px dashed #808080;
             display: flex;
             align-items: center;
             justify-content: center;
             text-align: center;
-            color: #00ffcc;
+            color: #F5F5F5;
             transition: border 0.3s;
         }
 
         #upload-zone:hover {
-            border-color: #ff00cc;
+            border-color: #FFFFFF;
         }
 
         table {
@@ -196,18 +188,19 @@
             border-collapse: collapse;
             margin-top: 10px;
             font-size: 12px;
+            color: #F5F5F5;
         }
 
         th, td {
             padding: 5px;
-            border: 1px solid #00ffcc;
+            border: 1px solid #808080;
             text-align: left;
         }
 
         .tooltip {
             position: absolute;
-            background: #00ffcc;
-            color: #000;
+            background: #808080;
+            color: #FFFFFF;
             padding: 5px;
             border-radius: 3px;
             font-size: 12px;
@@ -219,11 +212,11 @@
 <body>
     <div id="sidebar">
         <ul>
-            <li onclick="toggleFilterPanel()" data-tooltip="Filter capitals by population">Fractal Cascade Filter</li>
-            <li onclick="addContinentChart()" data-tooltip="Bar chart of population by continent">Continent Population Chart</li>
-            <li onclick="addHeatmap()" data-tooltip="Heatmap of capital populations">Population Heatmap</li>
-            <li onclick="addTopNTable()" data-tooltip="Table of top 5 populous capitals">Top 5 Capitals</li>
-            <li onclick="resetCanvas()" data-tooltip="Clear all visualizations">Reset Canvas</li>
+            <li onclick="toggleFilterPanel()" data-tooltip="Discover capitals with hyperbolic filtering">Hyperbolic Cascade Filter</li>
+            <li onclick="addContinentChart()" data-tooltip="Population by continent">Continent Population Chart</li>
+            <li onclick="addHeatmap()" data-tooltip="Population distribution heatmap">Population Heatmap</li>
+            <li onclick="addTopNTable()" data-tooltip="Most populous capitals">Top 5 Capitals</li>
+            <li onclick="resetCanvas()" data-tooltip="Clear visualizations">Reset Canvas</li>
             <li>
                 Paste Data (CSV):
                 <textarea id="data-input" placeholder="Paste CSV data (e.g., id,country,capital,population,continent,connections)"></textarea>
@@ -238,11 +231,11 @@
     </div>
 
     <div id="filter-panel">
-        <h3>Fractal Relevance Cascade</h3>
+        <h3>Hyperbolic Relevance Cascade</h3>
         <input type="text" id="filter-query" placeholder="Enter query (e.g., population > 5000000)">
         <input type="range" id="fractal-depth" min="1" max="10" value="5">
         <label for="fractal-depth">Cascade Depth: <span id="depth-value">5</span></label>
-        <button onclick="applyFractalFilter()">Apply Filter</button>
+        <button onclick="applyHyperbolicFilter()">Apply Filter</button>
     </div>
 
     <div id="upload-zone">Drag & Drop CSV File</div>
@@ -252,7 +245,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script>
-        // Integrated dataset
+        // Dataset
         let dataset = [
             { id: 1, country: "Algeria", capital: "Algiers", population: 2000000, continent: "Africa", connections: [35, 49] },
             { id: 2, country: "Angola", capital: "Luanda", population: 8952000, continent: "Africa", connections: [14, 53] },
@@ -280,7 +273,7 @@
             { id: 24, country: "Guinea", capital: "Conakry", population: 1800000, continent: "Africa", connections: [25, 43] },
             { id: 25, country: "Guinea-Bissau", capital: "Bissau", population: 492000, continent: "Africa", connections: [24, 42] },
             { id: 26, country: "Kenya", capital: "Nairobi", population: 9600000, continent: "Africa", connections: [20, 49] },
-            { id: 27, country: "Lesotho", capital: "Maseru", population: 330000, continent: "Africa", connections: [46] },
+            { id: 27, country: "Lesotho", capital: "Maseru", population: 330000, continent Tribes: [46] },
             { id: 28, country: "Liberia", capital: "Monrovia", population: 1200000, continent: "Africa", connections: [24] },
             { id: 29, country: "Libya", capital: "Tripoli", population: 1200000, continent: "Africa", connections: [16, 35] },
             { id: 30, country: "Madagascar", capital: "Antananarivo", population: 1400000, continent: "Africa", connections: [11] },
@@ -353,24 +346,127 @@
             { id: 97, country: "Turkey", capital: "Ankara", population: 5700000, continent: "Asia", connections: [57, 92] },
             { id: 98, country: "Turkmenistan", capital: "Ashgabat", population: 1000000, continent: "Asia", connections: [68, 94] },
             { id: 99, country: "United Arab Emirates", capital: "Abu Dhabi", population: 1500000, continent: "Asia", connections: [83, 87] },
-               ];
+            { id: 100, country: "Uzbekistan", capital: "Tashkent", population: 2900000, continent: "Asia", connections: [74, 98] },
+            { id: 101, country: "Vietnam", capital: "Hanoi", population: 8400000, continent: "Asia", connections: [62, 75] },
+            { id: 102, country: "Yemen", capital: "Sana'a", population: 2900000, continent: "Asia", connections: [83, 85] },
+    
+    
+            { id: 103, country: "Albania", capital: "Tirana", population: 557000, continent: "Europe", connections: [108, 130] },
+            { id: 104, country: "Andorra", capital: "Andorra la Vella", population: 22000, continent: "Europe", connections: [116] },
+            { id: 105, country: "Austria", capital: "Vienna", population: 1900000, continent: "Europe", connections: [112, 139] },
+            { id: 106, country: "Belarus", capital: "Minsk", population: 2000000, continent: "Europe", connections: [123, 136] },
+            { id: 107, country: "Belgium", capital: "Brussels", population: 1200000, continent: "Europe", connections: [116, 129] },
+            { id: 108, country: "Bosnia and Herzegovina", capital: "Sarajevo", population: 275000, continent: "Europe", connections: [103, 111] },
+            { id: 109, country: "Bulgaria", capital: "Sofia", population: 1200000, continent: "Europe", connections: [130, 136] },
+            { id: 110, country: "Croatia", capital: "Zagreb", population: 790000, continent: "Europe", connections: [108, 139] },
+            { id: 111, country: "Czech Republic", capital: "Prague", population: 1300000, continent: "Europe", connections: [105, 117] },
+            { id: 112, country: "Denmark", capital: "Copenhagen", population: 1400000, continent: "Europe", connections: [118, 134] },
+            { id: 113, country: "Estonia", capital: "Tallinn", population: 450000, continent: "Europe", connections: [119, 123] },
+            { id: 114, country: "Finland", capital: "Helsinki", population: 670000, continent: "Europe", connections: [113, 134] },
+            { id: 115, country: "France", capital: "Paris", population: 2200000, continent: "Europe", connections: [107, 116] },
+            { id: 116, country: "Germany", capital: "Berlin", population: 3700000, continent: "Europe", connections: [105, 115] },
+            { id: 117, country: "Greece", capital: "Athens", population: 3200000, continent: "Europe", connections: [103, 109] },
+            { id: 118, country: "Hungary", capital: "Budapest", population: 1700000, continent: "Europe", connections: [105, 110] },
+            { id: 119, country: "Iceland", capital: "Reykjavík", population: 140000, continent: "Europe", connections: [114] },
+            { id: 120, country: "Ireland", capital: "Dublin", population: 1300000, continent: "Europe", connections: [147] },
+            { id: 121, country: "Italy", capital: "Rome", population: 2800000, continent: "Europe", connections: [115, 125] },
+            { id: 122, country: "Latvia", capital: "Riga", population: 600000, continent: "Europe", connections: [113, 123] },
+            { id: 123, country: "Liechtenstein", capital: "Vaduz", population: 5800, continent: "Europe", connections: [105, 141] },
+            { id: 124, country: "Lithuania", capital: "Vilnius", population: 580000, continent: "Europe", connections: [106, 122] },
+            { id: 125, country: "Luxembourg", capital: "Luxembourg", population: 130000, continent: "Europe", connections: [107, 116] },
+            { id: 126, country: "Malta", capital: "Valletta", population: 6000, continent: "Europe", connections: [121] },
+            { id: 127, country: "Moldova", capital: "Chișinău", population: 500000, continent: "Europe", connections: [136, 145] },
+            { id: 128, country: "Monaco", capital: "Monaco", population: 39000, continent: "Europe", connections: [115] },
+            { id: 129, country: "Montenegro", capital: "Podgorica", population: 190000, continent: "Europe", connections: [103, 108] },
+            { id: 130, country: "Netherlands", capital: "Amsterdam", population: 900000, continent: "Europe", connections: [107, 116] },
+            { id: 131, country: "North Macedonia", capital: "Skopje", population: 550000, continent: "Europe", connections: [103, 109] },
+            { id: 132, country: "Norway", capital: "Oslo", population: 700000, continent: "Europe", connections: [112, 140] },
+            { id: 133, country: "Poland", capital: "Warsaw", population: 1800000, continent: "Europe", connections: [106, 124] },
+            { id: 134, country: "Portugal", capital: "Lisbon", population: 550000, continent: "Europe", connections: [115, 141] },
+            { id: 135, country: "Romania", capital: "Bucharest", population: 1800000, continent: "Europe", connections: [109, 136] },
+            { id: 136, country: "Russian Federation", capital: "Moscow", population: 12600000, continent: "Europe", connections: [106, 133] },
+            { id: 137, country: "San Marino", capital: "San Marino", population: 4000, continent: "Europe", connections: [121] },
+            { id: 138, country: "Serbia", capital: "Belgrade", population: 1400000, continent: "Europe", connections: [108, 110] },
+            { id: 139, country: "Slovakia", capital: "Bratislava", population: 440000, continent: "Europe", connections: [105, 118] },
+            { id: 140, country: "Slovenia", capital: "Ljubljana", population: 280000, continent: "Europe", connections: [110, 121] },
+            { id: 141, country: "Spain", capital: "Madrid", population: 3300000, continent: "Europe", connections: [115, 134] },
+            { id: 142, country: "Sweden", capital: "Stockholm", population: 1000000, continent: "Europe", connections: [112, 114] },
+            { id: 143, country: "Switzerland", capital: "Bern", population: 135000, continent: "Europe", connections: [105, 116] },
+            { id: 144, country: "Ukraine", capital: "Kyiv", population: 2800000, continent: "Europe", connections: [106, 133] },
+            { id: 145, country: "United Kingdom", capital: "London", population: 9000000, continent: "Europe", connections: [120, 130] },
+            { id: 146, country: "Vatican City", capital: "Vatican City", population: 800, continent: "Europe", connections: [121] },
+            { id: 147, country: "Antigua and Barbuda", capital: "St. John's", population: 22000, continent: "North America", connections: [149] },
+            { id: 148, country: "Bahamas", capital: "Nassau", population: 280000, continent: "North America", connections: [154] },
+            { id: 149, country: "Barbados", capital: "Bridgetown", population: 110000, continent: "North America", connections: [147, 159] },
+            { id: 150, country: "Belize", capital: "Belmopan", population: 22000, continent: "North America", connections: [156, 160] },
+            { id: 151, country: "Canada", capital: "Ottawa", population: 1400000, continent: "North America", connections: [169] },
+            { id: 152, country: "Costa Rica", capital: "San José", population: 340000, continent: "North America", connections: [158, 165] },
+            { id: 153, country: "Cuba", capital: "Havana", population: 2100000, continent: "North America", connections: [148] },
+            { id: 154, country: "Dominica", capital: "Roseau", population: 15000, continent: "North America", connections: [149] },
+            { id: 155, country: "Dominican Republic", capital: "Santo Domingo", population: 3400000, continent: "North America", connections: [153, 157] },
+            { id: 156, country: "El Salvador", capital: "San Salvador", population: 570000, continent: "North America", connections: [152, 160] },
+            { id: 157, country: "Grenada", capital: "St. George's", population: 38000, continent: "North America", connections: [149] },
+            { id: 158, country: "Guatemala", capital: "Guatemala City", population: 2900000, continent: "North America", connections: [150, 156] },
+            { id: 159, country: "Haiti", capital: "Port-au-Prince", population: 1200000, continent: "North America", connections: [155] },
+            { id: 160, country: "Honduras", capital: "Tegucigalpa", population: 1300000, continent: "North America", connections: [156, 165] },
+            { id: 161, country: "Jamaica", capital: "Kingston", population: 670000, continent: "North America", connections: [153] },
+            { id: 162, country: "Mexico", capital: "Mexico City", population: 9200000, continent: "North America", connections: [158, 169] },
+            { id: 163, country: "Nicaragua", capital: "Managua", population: 1100000, continent: "North America", connections: [152, 160] },
+            { id: 164, country: "Panama", capital: "Panama City", population: 1900000, continent: "North America", connections: [152] },
+            { id: 165, country: "Saint Kitts and Nevis", capital: "Basseterre", population: 14000, continent: "North America", connections: [147] },
+            { id: 166, country: "Saint Lucia", capital: "Castries", population: 22000, continent: "North America", connections: [149] },
+            { id: 167, country: "Saint Vincent and the Grenadines", capital: "Kingstown", population: 26000, continent: "North America", connections: [157] },
+            { id: 168, country: "Trinidad and Tobago", capital: "Port of Spain", population: 37000, continent: "North America", connections: [157] },
+            { id: 169, country: "United States", capital: "Washington, D.C.", population: 690000, continent: "North America", connections: [151, 162] },
+            { id: 170, country: "Argentina", capital: "Buenos Aires", population: 15000000, continent: "South America", connections: [172, 181] },
+            { id: 171, country: "Bolivia", capital: "Sucre", population: 400000, continent: "South America", connections: [172, 175] },
+            { id: 172, country: "Brazil", capital: "Brasília", population: 4800000, continent: "South America", connections: [170, 175] },
+            { id: 173, country: "Chile", capital: "Santiago", population: 6900000, continent: "South America", connections: [170, 175] },
+            { id: 174, country: "Colombia", capital: "Bogotá", population: 10600000, continent: "South America", connections: [176, 179] },
+            { id: 175, country: "Ecuador", capital: "Quito", population: 2800000, continent: "South America", connections: [174, 179] },
+            { id: 176, country: "Guyana", capital: "Georgetown", population: 200000, continent: "South America", connections: [180, 181] },
+            { id: 177, country: "Paraguay", capital: "Asunción", population: 525000, continent: "South America", connections: [170, 172] },
+            { id: 178, country: "Peru", capital: "Lima", population: 10400000, continent: "South America", connections: [171, 175] },
+            { id: 179, country: "Suriname", capital: "Paramaribo", population: 240000, continent: "South America", connections: [176] },
+            { id: 180, country: "Uruguay", capital: "Montevideo", population: 1800000, continent: "South America", connections: [170] },
+            { id: 181, country: "Venezuela", capital: "Caracas", population: 2900000, continent: "South America", connections: [174, 176] },
+            { id: 182, country: "Australia", capital: "Canberra", population: 460000, continent: "Oceania", connections: [190] },
+            { id: 183, country: "Fiji", capital: "Suva", population: 93000, continent: "Oceania", connections: [192] },
+            { id: 184, country: "Kiribati", capital: "Tarawa", population: 56000, continent: "Oceania", connections: [185] },
+            { id: 185, country: "Marshall Islands", capital: "Majuro", population: 27000, continent: "Oceania", connections: [184] },
+            { id: 186, country: "Micronesia", capital: "Palikir", population: 7000, continent: "Oceania", connections: [185] },
+            { id: 187, country: "Nauru", capital: "Yaren District", population: 750, continent: "Oceania", connections: [184] },
+            { id: 188, country: "New Zealand", capital: "Wellington", population: 215000, continent: "Oceania", connections: [182] },
+            { id: 189, country: "Palau", capital: "Ngerulmud", population: 400, continent: "Oceania", connections: [185] },
+            { id: 190, country: "Papua New Guinea", capital: "Port Moresby", population: 400000, continent: "Oceania", connections: [182] },
+            { id: 191, country: "Samoa", capital: "Apia", population: 40000, continent: "Oceania", connections: [192] },
+            { id: 192, country: "Solomon Islands", capital: "Honiara", population: 93000, continent: "Oceania", connections: [183, 190] },
+            { id: 193, country: "Tonga", capital: "Nukuʻalofa", population: 24000, continent: "Oceania", connections: [191] },
+            { id: 194, country: "Tuvalu", capital: "Funafuti", population: 6000, continent: "Oceania", connections: [183] },
+            { id: 195, country: "Vanuatu", capital: "Port Vila", population: 52000, continent: "Oceania", connections: [192] },
+            { id: 196, country: "Cook Islands", capital: "Avarua", population: 5000, continent: "Oceania", connections: [191] },
+            { id: 197, country: "Niue", capital: "Alofi", population: 600, continent: "Oceania", connections: [191] }
+        ];
 
         // Three.js Globe Setup
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ alpha: true });
-        renderer.setSize(400, 400);
+        renderer.setSize(500, 500);
         document.getElementById('holographic-globe').appendChild(renderer.domElement);
 
         const geometry = new THREE.SphereGeometry(1, 32, 32);
-        const material = new THREE.MeshBasicMaterial({ color: 0x00ffcc, wireframe: true });
+        const material = new THREE.MeshBasicMaterial({ color: 0x808080, wireframe: true });
         const sphere = new THREE.Mesh(geometry, material);
         scene.add(sphere);
 
         let nodes = [];
+        let edges = [];
         function updateGlobe() {
             nodes.forEach(n => scene.remove(n));
+            edges.forEach(e => scene.remove(e));
             nodes = [];
+            edges = [];
             const maxPop = Math.max(...dataset.map(d => d.population));
             dataset.forEach(d => {
                 const phi = Math.random() * Math.PI * 2;
@@ -378,14 +474,32 @@
                 const x = Math.sin(theta) * Math.cos(phi);
                 const y = Math.sin(theta) * Math.sin(phi);
                 const z = Math.cos(theta);
-                const size = 0.02 + Math.log1p(d.population) / Math.log1p(maxPop) * 0.1; // Logarithmic scaling
+                const size = 0.02 + Math.log1p(d.population) / Math.log1p(maxPop) * 0.1;
                 const nodeGeo = new THREE.SphereGeometry(size, 16, 16);
-                const nodeMat = new THREE.MeshBasicMaterial({ color: 0xff00cc });
+                const nodeMat = new THREE.MeshBasicMaterial({ color: 0xF5F5F5 });
                 const node = new THREE.Mesh(nodeGeo, nodeMat);
                 node.position.set(x, y, z);
                 node.userData = d;
                 scene.add(node);
                 nodes.push(node);
+
+                // Add edges
+                (d.connections || []).forEach(c => {
+                    const target = dataset.find(t => t.id === c);
+                    if (target) {
+                        const tNode = nodes.find(n => n.userData.id === c);
+                        if (tNode) {
+                            const edgeGeo = new THREE.BufferGeometry().setFromPoints([
+                                node.position,
+                                tNode.position
+                            ]);
+                            const edgeMat = new THREE.LineBasicMaterial({ color: 0x808080, opacity: 0.5, transparent: true });
+                            const edge = new THREE.Line(edgeGeo, edgeMat);
+                            scene.add(edge);
+                            edges.push(edge);
+                        }
+                    }
+                });
             });
         }
         updateGlobe();
@@ -394,15 +508,15 @@
 
         function animateGlobe() {
             requestAnimationFrame(animateGlobe);
-            sphere.rotation.y += 0.01;
+            sphere.rotation.y += 0.005;
             nodes.forEach(n => {
-                n.rotation.y += 0.02;
+                n.rotation.y += 0.01;
             });
             renderer.render(scene, camera);
         }
         animateGlobe();
 
-        // Infinite Canvas with Pan and Zoom
+        // Infinite Canvas
         let transform = { x: 0, y: 0, scale: 1 };
         const canvas = document.getElementById('visualization-canvas');
         let isDragging = false;
@@ -427,7 +541,7 @@
             e.preventDefault();
             const zoomSpeed = 0.1;
             transform.scale *= e.deltaY > 0 ? 1 - zoomSpeed : 1 + zoomSpeed;
-            transform.scale = Math.max(0.1, Math.min(10, transform.scale)); // Limit zoom
+            transform.scale = Math.max(0.1, Math.min(10, transform.scale));
             updateCanvas();
         });
 
@@ -475,11 +589,14 @@
                 .call(d3.axisBottom(x))
                 .selectAll('text')
                 .attr('transform', 'rotate(-45)')
-                .attr('text-anchor', 'end');
+                .attr('text-anchor', 'end')
+                .attr('fill', '#F5F5F5');
 
             svg.append('g')
                 .attr('transform', 'translate(40,0)')
-                .call(d3.axisLeft(y).ticks(5).tickFormat(d3.format('.2s')));
+                .call(d3.axisLeft(y).ticks(5).tickFormat(d3.format('.2s')))
+                .selectAll('text')
+                .attr('fill', '#F5F5F5');
 
             const bars = svg.selectAll('.bar')
                 .data(continentData)
@@ -490,9 +607,8 @@
                 .attr('y', d => y(d.population))
                 .attr('width', x.bandwidth())
                 .attr('height', d => 210 - y(d.population))
-                .attr('fill', '#00ffcc');
+                .attr('fill', '#808080');
 
-            // Tooltip
             const tooltip = d3.select('body').append('div').attr('class', 'tooltip').style('opacity', 0);
             bars.on('mouseover', function(event, d) {
                 tooltip.transition().duration(200).style('opacity', 0.9);
@@ -506,7 +622,7 @@
             canvas.appendChild(visDiv);
             makeDraggable(visDiv);
             updateCanvas();
-        }
+            }
 
         // Population Heatmap
         function addHeatmap() {
@@ -524,7 +640,9 @@
 
             const gridSize = 20;
             const buckets = 9;
-            const colors = d3.schemeBlues[buckets];
+            const colors = d3.scaleLinear()
+                .domain([0, 1])
+                .range(['#808080', '#F5F5F5']);
             const maxPop = Math.max(...dataset.map(d => d.population));
             const data = dataset.map(d => ({
                 x: Math.random() * 10,
@@ -534,10 +652,6 @@
                 population: d.population
             }));
 
-            const colorScale = d3.scaleQuantile()
-                .domain([0, 1])
-                .range(colors);
-
             const rects = svg.selectAll('rect')
                 .data(data)
                 .enter()
@@ -546,9 +660,8 @@
                 .attr('y', d => d.y * gridSize + 10)
                 .attr('width', gridSize)
                 .attr('height', gridSize)
-                .attr('fill', d => colorScale(d.value));
+                .attr('fill', d => colors(d.value));
 
-            // Tooltip
             const tooltip = d3.select('body').append('div').attr('class', 'tooltip').style('opacity', 0);
             rects.on('mouseover', function(event, d) {
                 tooltip.transition().duration(200).style('opacity', 0.9);
@@ -612,8 +725,8 @@
             document.addEventListener('mouseup', () => isDragging = false);
         }
 
-        // Fractal Relevance Cascade
-        function fractalRelevanceCascade(query, depth) {
+        // Hyperbolic Fractal Relevance Cascade
+        function hyperbolicRelevanceCascade(query, depth) {
             const condition = query.match(/(\w+)\s*(>|<|=)\s*(\d+)/);
             if (!condition) {
                 alert('Invalid query. Use format: population > 5000000');
@@ -625,8 +738,26 @@
             const value = parseInt(condition[3]);
 
             if (field !== 'population') {
-                alert('Only "population" field is supported for filtering.');
+                alert('Only "population" field is supported.');
                 return dataset;
+            }
+
+            // Map nodes to Poincaré disk
+            const poincarePositions = dataset.map(d => ({
+                id: d.id,
+                x: Math.random() * 0.8, // Within unit disk
+                y: Math.random() * 0.8,
+                radius: Math.log1p(d.population) / 20
+            }));
+
+            // Calculate hyperbolic distances
+            function hyperbolicDistance(p1, p2) {
+                const z1 = { x: p1.x, y: p1.y };
+                const z2 = { x: p2.x, y: p2.y };
+                const dot = z1.x * z2.x + z1.y * z2.y;
+                const norm1 = z1.x * z1.x + z1.y * z1.y;
+                const norm2 = z2.x * z2.x + z2.y * z2.y;
+                return Math.acosh(1 + 2 * (norm1 + norm2 - 2 * dot) / ((1 - norm1) * (1 - norm2)));
             }
 
             const scores = new Map(dataset.map(d => [d.id, 0]));
@@ -643,9 +774,13 @@
                 const newScores = new Map(scores);
                 dataset.forEach(d => {
                     let total = scores.get(d.id);
-                    const connections = Array.isArray(d.connections) ? d.connections : [];
-                    connections.forEach(c => {
-                        total += (scores.get(c) || 0) * 0.5;
+                    const p1 = poincarePositions.find(p => p.id === d.id);
+                    (d.connections || []).forEach(c => {
+                        const p2 = poincarePositions.find(p => p.id === c);
+                        if (p2) {
+                            const dist = hyperbolicDistance(p1, p2);
+                            total += (scores.get(c) || 0) * Math.exp(-dist);
+                        }
                     });
                     newScores.set(d.id, total);
                 });
@@ -668,18 +803,25 @@
             document.getElementById('depth-value').textContent = e.target.value;
         });
 
-        function applyFractalFilter() {
+        function applyHyperbolicFilter() {
             const query = document.getElementById('filter-query').value.trim();
             if (!query) {
                 alert('Please enter a query (e.g., population > 5000000).');
                 return;
             }
             const depth = parseInt(document.getElementById('fractal-depth').value);
-            const filteredData = fractalRelevanceCascade(query, depth);
+            const filteredData = hyperbolicRelevanceCascade(query, depth);
             console.log('Filtered Data:', filteredData);
+            const maxRelevance = Math.max(...filteredData.map(d => d.relevance));
             nodes.forEach(n => {
                 const d = filteredData.find(fd => fd.id === n.userData.id);
-                n.material.color.set(d.relevance > 0 ? 0x00ffcc : 0xff00cc);
+                const intensity = d.relevance / (maxRelevance || 1);
+                n.material.color.setRGB(intensity, intensity, intensity); // Greyscale
+            });
+            edges.forEach(e => {
+                const sourceId = e.geometry.attributes.position.array[0]; // Simplified
+                const d = filteredData.find(fd => fd.id === sourceId);
+                e.material.opacity = d ? d.relevance / (maxRelevance || 1) * 0.5 : 0.1;
             });
         }
 
