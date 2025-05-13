@@ -49,13 +49,28 @@
 
         #sidebar li {
             margin: 20px 0;
-            font-size: 18px;
+            font-size: 16px;
             cursor: pointer;
             transition: color 0.3s;
+            position: relative;
         }
 
         #sidebar li:hover {
             color: #00ffcc;
+        }
+
+        #sidebar li:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            left: 100%;
+            top: 0;
+            background: #00ffcc;
+            color: #000;
+            padding: 5px;
+            border-radius: 3px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 1001;
         }
 
         #data-input {
@@ -154,6 +169,7 @@
             border-radius: 10px;
             padding: 10px;
             cursor: move;
+            overflow: hidden;
         }
 
         #upload-zone {
@@ -179,6 +195,7 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 10px;
+            font-size: 12px;
         }
 
         th, td {
@@ -186,16 +203,27 @@
             border: 1px solid #00ffcc;
             text-align: left;
         }
+
+        .tooltip {
+            position: absolute;
+            background: #00ffcc;
+            color: #000;
+            padding: 5px;
+            border-radius: 3px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 1002;
+        }
     </style>
 </head>
 <body>
     <div id="sidebar">
         <ul>
-            <li onclick="toggleFilterPanel()">Fractal Cascade Filter</li>
-            <li onclick="addContinentChart()">Continent Population Chart</li>
-            <li onclick="addHeatmap()">Population Heatmap</li>
-            <li onclick="addTopNTable()">Top 5 Capitals</li>
-            <li onclick="resetCanvas()">Reset Canvas</li>
+            <li onclick="toggleFilterPanel()" data-tooltip="Filter capitals by population">Fractal Cascade Filter</li>
+            <li onclick="addContinentChart()" data-tooltip="Bar chart of population by continent">Continent Population Chart</li>
+            <li onclick="addHeatmap()" data-tooltip="Heatmap of capital populations">Population Heatmap</li>
+            <li onclick="addTopNTable()" data-tooltip="Table of top 5 populous capitals">Top 5 Capitals</li>
+            <li onclick="resetCanvas()" data-tooltip="Clear all visualizations">Reset Canvas</li>
             <li>
                 Paste Data (CSV):
                 <textarea id="data-input" placeholder="Paste CSV data (e.g., id,country,capital,population,continent,connections)"></textarea>
@@ -325,11 +353,434 @@
             { id: 97, country: "Turkey", capital: "Ankara", population: 5700000, continent: "Asia", connections: [57, 92] },
             { id: 98, country: "Turkmenistan", capital: "Ashgabat", population: 1000000, continent: "Asia", connections: [68, 94] },
             { id: 99, country: "United Arab Emirates", capital: "Abu Dhabi", population: 1500000, continent: "Asia", connections: [83, 87] },
-            { id: 100, country: "Uzbekistan", capital: "Tashkent", population: 2900000, continent: "Asia", connections: [74, 98] },
-            { id: 101, country: "Vietnam", capital: "Hanoi", population: 8400000, continent: "Asia", connections: [62, 75] },
-            { id: 102, country: "Yemen", capital: "Sana'a", population: 2900000, continent: "Asia", connections: [83, 85] },
-            { id: 103, country: "Albania", capital: "Tirana", population: 557000, continent: "Europe", connections: [108, 130] },
-            { id: 104, country: "Andorra", capital: "Andorra la Vella", population: 22000, continent: "Europe", connections: [116] },
-            { id: 105, country: "Austria", capital: "Vienna", population: 1900000, continent: "Europe", connections: [112, 139] },
-            { id: 106, country: "Belarus", capital: "Minsk", population: 2000000, continent: "Europe", connections: [123, 136] },
-            { id: 107, country: "Belgium", capital: "Brussels", population: 1200000, continent: "Eur
+               ];
+
+        // Three.js Globe Setup
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ alpha: true });
+        renderer.setSize(400, 400);
+        document.getElementById('holographic-globe').appendChild(renderer.domElement);
+
+        const geometry = new THREE.SphereGeometry(1, 32, 32);
+        const material = new THREE.MeshBasicMaterial({ color: 0x00ffcc, wireframe: true });
+        const sphere = new THREE.Mesh(geometry, material);
+        scene.add(sphere);
+
+        let nodes = [];
+        function updateGlobe() {
+            nodes.forEach(n => scene.remove(n));
+            nodes = [];
+            const maxPop = Math.max(...dataset.map(d => d.population));
+            dataset.forEach(d => {
+                const phi = Math.random() * Math.PI * 2;
+                const theta = Math.random() * Math.PI;
+                const x = Math.sin(theta) * Math.cos(phi);
+                const y = Math.sin(theta) * Math.sin(phi);
+                const z = Math.cos(theta);
+                const size = 0.02 + Math.log1p(d.population) / Math.log1p(maxPop) * 0.1; // Logarithmic scaling
+                const nodeGeo = new THREE.SphereGeometry(size, 16, 16);
+                const nodeMat = new THREE.MeshBasicMaterial({ color: 0xff00cc });
+                const node = new THREE.Mesh(nodeGeo, nodeMat);
+                node.position.set(x, y, z);
+                node.userData = d;
+                scene.add(node);
+                nodes.push(node);
+            });
+        }
+        updateGlobe();
+
+        camera.position.z = 3;
+
+        function animateGlobe() {
+            requestAnimationFrame(animateGlobe);
+            sphere.rotation.y += 0.01;
+            nodes.forEach(n => {
+                n.rotation.y += 0.02;
+            });
+            renderer.render(scene, camera);
+        }
+        animateGlobe();
+
+        // Infinite Canvas with Pan and Zoom
+        let transform = { x: 0, y: 0, scale: 1 };
+        const canvas = document.getElementById('visualization-canvas');
+        let isDragging = false;
+        let startX, startY;
+
+        canvas.addEventListener('mousedown', e => {
+            isDragging = true;
+            startX = e.clientX - transform.x;
+            startY = e.clientY - transform.y;
+        });
+
+        canvas.addEventListener('mousemove', e => {
+            if (isDragging) {
+                transform.x = e.clientX - startX;
+                transform.y = e.clientY - startY;
+                updateCanvas();
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => isDragging = false);
+        canvas.addEventListener('wheel', e => {
+            e.preventDefault();
+            const zoomSpeed = 0.1;
+            transform.scale *= e.deltaY > 0 ? 1 - zoomSpeed : 1 + zoomSpeed;
+            transform.scale = Math.max(0.1, Math.min(10, transform.scale)); // Limit zoom
+            updateCanvas();
+        });
+
+        function updateCanvas() {
+            const visElements = document.querySelectorAll('.visualization');
+            visElements.forEach(el => {
+                const x = parseFloat(el.dataset.x);
+                const y = parseFloat(el.dataset.y);
+                el.style.transform = `translate(${transform.x + x * transform.scale}px, ${transform.y + y * transform.scale}px) scale(${transform.scale})`;
+            });
+        }
+
+        // Continent Population Chart
+        function addContinentChart() {
+            const visDiv = document.createElement('div');
+            visDiv.className = 'visualization';
+            visDiv.style.width = '350px';
+            visDiv.style.height = '250px';
+            visDiv.dataset.x = Math.random() * 500;
+            visDiv.dataset.y = Math.random() * 500;
+
+            const svg = d3.select(visDiv)
+                .append('svg')
+                .attr('width', 350)
+                .attr('height', 250);
+
+            const continents = d3.group(dataset, d => d.continent);
+            const continentData = Array.from(continents, ([key, values]) => ({
+                continent: key,
+                population: d3.sum(values, d => d.population)
+            }));
+
+            const x = d3.scaleBand()
+                .domain(continentData.map(d => d.continent))
+                .range([40, 310])
+                .padding(0.1);
+
+            const y = d3.scaleLog()
+                .domain([1000000, d3.max(continentData, d => d.population)])
+                .range([210, 30])
+                .clamp(true);
+
+            svg.append('g')
+                .attr('transform', 'translate(0,210)')
+                .call(d3.axisBottom(x))
+                .selectAll('text')
+                .attr('transform', 'rotate(-45)')
+                .attr('text-anchor', 'end');
+
+            svg.append('g')
+                .attr('transform', 'translate(40,0)')
+                .call(d3.axisLeft(y).ticks(5).tickFormat(d3.format('.2s')));
+
+            const bars = svg.selectAll('.bar')
+                .data(continentData)
+                .enter()
+                .append('rect')
+                .attr('class', 'bar')
+                .attr('x', d => x(d.continent))
+                .attr('y', d => y(d.population))
+                .attr('width', x.bandwidth())
+                .attr('height', d => 210 - y(d.population))
+                .attr('fill', '#00ffcc');
+
+            // Tooltip
+            const tooltip = d3.select('body').append('div').attr('class', 'tooltip').style('opacity', 0);
+            bars.on('mouseover', function(event, d) {
+                tooltip.transition().duration(200).style('opacity', 0.9);
+                tooltip.html(`${d.continent}: ${d.population.toLocaleString()}`)
+                    .style('left', (event.pageX + 10) + 'px')
+                    .style('top', (event.pageY - 28) + 'px');
+            }).on('mouseout', function() {
+                tooltip.transition().duration(500).style('opacity', 0);
+            });
+
+            canvas.appendChild(visDiv);
+            makeDraggable(visDiv);
+            updateCanvas();
+        }
+
+        // Population Heatmap
+        function addHeatmap() {
+            const visDiv = document.createElement('div');
+            visDiv.className = 'visualization';
+            visDiv.style.width = '300px';
+            visDiv.style.height = '200px';
+            visDiv.dataset.x = Math.random() * 500;
+            visDiv.dataset.y = Math.random() * 500;
+
+            const svg = d3.select(visDiv)
+                .append('svg')
+                .attr('width', 300)
+                .attr('height', 200);
+
+            const gridSize = 20;
+            const buckets = 9;
+            const colors = d3.schemeBlues[buckets];
+            const maxPop = Math.max(...dataset.map(d => d.population));
+            const data = dataset.map(d => ({
+                x: Math.random() * 10,
+                y: Math.random() * 10,
+                value: Math.log1p(d.population) / Math.log1p(maxPop),
+                capital: d.capital,
+                population: d.population
+            }));
+
+            const colorScale = d3.scaleQuantile()
+                .domain([0, 1])
+                .range(colors);
+
+            const rects = svg.selectAll('rect')
+                .data(data)
+                .enter()
+                .append('rect')
+                .attr('x', d => d.x * gridSize + 30)
+                .attr('y', d => d.y * gridSize + 10)
+                .attr('width', gridSize)
+                .attr('height', gridSize)
+                .attr('fill', d => colorScale(d.value));
+
+            // Tooltip
+            const tooltip = d3.select('body').append('div').attr('class', 'tooltip').style('opacity', 0);
+            rects.on('mouseover', function(event, d) {
+                tooltip.transition().duration(200).style('opacity', 0.9);
+                tooltip.html(`${d.capital}: ${d.population.toLocaleString()}`)
+                    .style('left', (event.pageX + 10) + 'px')
+                    .style('top', (event.pageY - 28) + 'px');
+            }).on('mouseout', function() {
+                tooltip.transition().duration(500).style('opacity', 0);
+            });
+
+            canvas.appendChild(visDiv);
+            makeDraggable(visDiv);
+            updateCanvas();
+        }
+
+        // Top 5 Capitals Table
+        function addTopNTable() {
+            const visDiv = document.createElement('div');
+            visDiv.className = 'visualization';
+            visDiv.style.width = '300px';
+            visDiv.style.height = '200px';
+            visDiv.dataset.x = Math.random() * 500;
+            visDiv.dataset.y = Math.random() * 500;
+
+            const topN = dataset
+                .sort((a, b) => b.population - a.population)
+                .slice(0, 5);
+
+            const table = document.createElement('table');
+            table.innerHTML = `
+                <tr><th>Country</th><th>Capital</th><th>Population</th></tr>
+                ${topN.map(d => `<tr><td>${d.country}</td><td>${d.capital}</td><td>${d.population.toLocaleString()}</td></tr>`).join('')}
+            `;
+            visDiv.appendChild(table);
+
+            canvas.appendChild(visDiv);
+            makeDraggable(visDiv);
+            updateCanvas();
+        }
+
+        // Make Visualizations Draggable
+        function makeDraggable(el) {
+            let isDragging = false;
+            let startX, startY;
+
+            el.addEventListener('mousedown', e => {
+                isDragging = true;
+                startX = e.clientX - parseFloat(el.dataset.x);
+                startY = e.clientY - parseFloat(el.dataset.y);
+                e.stopPropagation();
+            });
+
+            document.addEventListener('mousemove', e => {
+                if (isDragging) {
+                    el.dataset.x = (e.clientX - startX) / transform.scale;
+                    el.dataset.y = (e.clientY - startY) / transform.scale;
+                    updateCanvas();
+                }
+            });
+
+            document.addEventListener('mouseup', () => isDragging = false);
+        }
+
+        // Fractal Relevance Cascade
+        function fractalRelevanceCascade(query, depth) {
+            const condition = query.match(/(\w+)\s*(>|<|=)\s*(\d+)/);
+            if (!condition) {
+                alert('Invalid query. Use format: population > 5000000');
+                return dataset;
+            }
+
+            const field = condition[1];
+            const operator = condition[2];
+            const value = parseInt(condition[3]);
+
+            if (field !== 'population') {
+                alert('Only "population" field is supported for filtering.');
+                return dataset;
+            }
+
+            const scores = new Map(dataset.map(d => [d.id, 0]));
+            const filtered = dataset.filter(d => {
+                if (operator === '>') return d[field] > value;
+                if (operator === '<') return d[field] < value;
+                if (operator === '=') return d[field] === value;
+                return false;
+            });
+
+            filtered.forEach(d => scores.set(d.id, 1));
+
+            for (let i = 0; i < depth; i++) {
+                const newScores = new Map(scores);
+                dataset.forEach(d => {
+                    let total = scores.get(d.id);
+                    const connections = Array.isArray(d.connections) ? d.connections : [];
+                    connections.forEach(c => {
+                        total += (scores.get(c) || 0) * 0.5;
+                    });
+                    newScores.set(d.id, total);
+                });
+                scores.clear();
+                newScores.forEach((v, k) => scores.set(k, v));
+            }
+
+            return dataset
+                .map(d => ({ ...d, relevance: scores.get(d.id) }))
+                .sort((a, b) => b.relevance - a.relevance);
+        }
+
+        // Filter Panel
+        function toggleFilterPanel() {
+            const panel = document.getElementById('filter-panel');
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+        }
+
+        document.getElementById('fractal-depth').addEventListener('input', e => {
+            document.getElementById('depth-value').textContent = e.target.value;
+        });
+
+        function applyFractalFilter() {
+            const query = document.getElementById('filter-query').value.trim();
+            if (!query) {
+                alert('Please enter a query (e.g., population > 5000000).');
+                return;
+            }
+            const depth = parseInt(document.getElementById('fractal-depth').value);
+            const filteredData = fractalRelevanceCascade(query, depth);
+            console.log('Filtered Data:', filteredData);
+            nodes.forEach(n => {
+                const d = filteredData.find(fd => fd.id === n.userData.id);
+                n.material.color.set(d.relevance > 0 ? 0x00ffcc : 0xff00cc);
+            });
+        }
+
+        // Reset Canvas
+        function resetCanvas() {
+            canvas.innerHTML = '';
+            transform = { x: 0, y: 0, scale: 1 };
+            updateCanvas();
+        }
+
+        // Paste Data
+        document.getElementById('submit-data').addEventListener('click', () => {
+            const text = document.getElementById('data-input').value.trim();
+            if (!text) {
+                alert('Please paste some CSV data.');
+                return;
+            }
+            Papa.parse(text, {
+                header: true,
+                dynamicTyping: true,
+                complete: result => {
+                    dataset = result.data.map(d => ({
+                        id: Number(d.id),
+                        country: String(d.country || ''),
+                        capital: String(d.capital || ''),
+                        population: Number(d.population || 0),
+                        continent: String(d.continent || ''),
+                        connections: d.connections ? String(d.connections).split(',').map(Number).filter(n => !isNaN(n)) : []
+                    })).filter(d => 
+                        d.id > 0 && 
+                        d.country && 
+                        d.capital && 
+                        d.population > 0 && 
+                        d.continent
+                    );
+                    if (dataset.length === 0) {
+                        alert('No valid data found. Ensure CSV has id,country,capital,population,continent,connections columns.');
+                        return;
+                    }
+                    console.log('Pasted Data:', dataset);
+                    updateGlobe();
+                    resetCanvas();
+                    addContinentChart();
+                    addTopNTable();
+                    alert('Data pasted successfully!');
+                    document.getElementById('data-input').value = '';
+                },
+                error: err => {
+                    alert('Error parsing CSV: ' + err.message);
+                }
+            });
+        });
+
+        // File Upload
+        const uploadZone = document.getElementById('upload-zone');
+        uploadZone.addEventListener('dragover', e => e.preventDefault());
+        uploadZone.addEventListener('drop', e => {
+            e.preventDefault();
+            const file = e.dataTransfer.files[0];
+            if (file && file.type === 'text/csv') {
+                Papa.parse(file, {
+                    header: true,
+                    dynamicTyping: true,
+                    complete: result => {
+                        dataset = result.data.map(d => ({
+                            id: Number(d.id),
+                            country: String(d.country || ''),
+                            capital: String(d.capital || ''),
+                            population: Number(d.population || 0),
+                            continent: String(d.continent || ''),
+                            connections: d.connections ? String(d.connections).split(',').map(Number).filter(n => !isNaN(n)) : []
+                        })).filter(d => 
+                            d.id > 0 && 
+                            d.country && 
+                            d.capital && 
+                            d.population > 0 && 
+                            d.continent
+                        );
+                        if (dataset.length === 0) {
+                            alert('No valid data found in CSV.');
+                            return;
+                        }
+                        console.log('Uploaded Data:', dataset);
+                        updateGlobe();
+                        resetCanvas();
+                        addContinentChart();
+                        addTopNTable();
+                        alert('Data uploaded successfully!');
+                    },
+                    error: err => {
+                        alert('Error parsing CSV: ' + err.message);
+                    }
+                });
+            } else {
+                alert('Please upload a valid CSV file.');
+            }
+        });
+
+        // Initialize
+        addContinentChart();
+        addTopNTable();
+    </script>
+</body>
+</html>
