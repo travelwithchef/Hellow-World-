@@ -1,83 +1,111 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Continent Explorer</title>
   <style>
     body {
       margin: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #330000;
+      background: linear-gradient(135deg, #3f0000, #8b0000);
       color: #fff;
+      height: 100vh;
+      overflow: hidden;
+      position: relative;
+    }
+
+    body::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image: url('https://upload.wikimedia.org/wikipedia/commons/8/83/Equirectangular_projection_SW.jpg');
+      background-size: cover;
+      background-position: center;
+      filter: blur(8px) brightness(0.3);
+      z-index: -1;
+    }
+
+    .centered {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    .cube-button {
+      width: 200px;
+      height: 200px;
+      background: radial-gradient(circle, #ff4d4d, #660000);
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
-      overflow: hidden;
-    }.cube-button {
-  width: 200px;
-  height: 200px;
-  background-color: #990000;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 24px;
-  font-weight: bold;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: 0.3s ease;
-  box-shadow: 0 0 25px #cc0000;
-  text-align: center;
-}
+      font-size: 24px;
+      font-weight: bold;
+      border-radius: 16px;
+      cursor: pointer;
+      transition: 0.3s ease;
+      box-shadow: 0 0 35px rgba(255, 0, 0, 0.7);
+      text-align: center;
+    }
 
-.cube-button:hover {
-  background-color: #cc0000;
-}
+    .cube-button:hover {
+      background: radial-gradient(circle, #ff6666, #990000);
+    }
 
-.cube-grid {
-  display: none;
-  flex-wrap: wrap;
-  gap: 20px;
-  justify-content: center;
-  margin-top: 20px;
-  max-width: 90vw;
-}
+    .cube-grid {
+      display: none;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+      margin-top: 20px;
+      max-width: 90vw;
+      z-index: 2;
+    }
 
-.cube {
-  width: 140px;
-  height: 140px;
-  background-color: #990000;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: 0.3s ease;
-  font-size: 18px;
-  box-shadow: 0 0 15px #cc0000;
-  text-align: center;
-}
+    .cube {
+      width: 140px;
+      height: 140px;
+      background: linear-gradient(145deg, #ff1a1a, #330000);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+      font-size: 18px;
+      font-weight: bold;
+      box-shadow: 0 0 18px rgba(255, 102, 102, 0.7);
+      text-align: center;
+    }
 
-.cube:hover {
-  background-color: #cc0000;
-}
+    .cube:hover {
+      transform: scale(1.05);
+      background: linear-gradient(145deg, #ff3333, #4d0000);
+    }
 
-.info-box {
-  display: none;
-  margin-top: 20px;
-  font-size: 20px;
-  background-color: #660000;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 0 10px #ff0000;
-  text-align: center;
-}
-
+    .info-box {
+      display: none;
+      margin-top: 20px;
+      font-size: 20px;
+      background-color: rgba(102, 0, 0, 0.9);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 12px #ff1a1a;
+      text-align: center;
+    }
   </style>
 </head>
-<body>  <div id="mainButton" class="cube-button">Continent</div>  <div id="continentGrid" class="cube-grid"></div>
-  <div id="countryGrid" class="cube-grid"></div>
-  <div id="infoBox" class="info-box"></div>  <script>
+<body>
+  <div class="centered">
+    <div id="mainButton" class="cube-button">Continent</div>
+    <div id="continentGrid" class="cube-grid"></div>
+    <div id="countryGrid" class="cube-grid"></div>
+    <div id="infoBox" class="info-box"></div>
+  </div>
+
+  <script>
     const continents = {
       Africa: {
         Nigeria: { capital: 'Abuja', population: '3.6 million' },
@@ -134,5 +162,6 @@
       infoBox.style.display = 'block';
       infoBox.innerHTML = `<strong>${country}</strong><br>Capital: ${info.capital}<br>Population: ${info.population}`;
     }
-  </script></body>
+  </script>
+</body>
 </html>
