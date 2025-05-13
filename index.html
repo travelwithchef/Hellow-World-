@@ -1,0 +1,138 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Continent Explorer</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #330000;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+    }.cube-button {
+  width: 200px;
+  height: 200px;
+  background-color: #990000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 24px;
+  font-weight: bold;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: 0.3s ease;
+  box-shadow: 0 0 25px #cc0000;
+  text-align: center;
+}
+
+.cube-button:hover {
+  background-color: #cc0000;
+}
+
+.cube-grid {
+  display: none;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+  margin-top: 20px;
+  max-width: 90vw;
+}
+
+.cube {
+  width: 140px;
+  height: 140px;
+  background-color: #990000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: 0.3s ease;
+  font-size: 18px;
+  box-shadow: 0 0 15px #cc0000;
+  text-align: center;
+}
+
+.cube:hover {
+  background-color: #cc0000;
+}
+
+.info-box {
+  display: none;
+  margin-top: 20px;
+  font-size: 20px;
+  background-color: #660000;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px #ff0000;
+  text-align: center;
+}
+
+  </style>
+</head>
+<body>  <div id="mainButton" class="cube-button">Continent</div>  <div id="continentGrid" class="cube-grid"></div>
+  <div id="countryGrid" class="cube-grid"></div>
+  <div id="infoBox" class="info-box"></div>  <script>
+    const continents = {
+      Africa: {
+        Nigeria: { capital: 'Abuja', population: '3.6 million' },
+        Egypt: { capital: 'Cairo', population: '9.5 million' },
+        Kenya: { capital: 'Nairobi', population: '4.4 million' },
+        SouthAfrica: { capital: 'Pretoria', population: '2.4 million' },
+        Ghana: { capital: 'Accra', population: '2.3 million' }
+      },
+      Asia: {
+        China: { capital: 'Beijing', population: '21.5 million' },
+        India: { capital: 'New Delhi', population: '32 million' },
+        Japan: { capital: 'Tokyo', population: '37 million' },
+        SouthKorea: { capital: 'Seoul', population: '9.7 million' },
+        Thailand: { capital: 'Bangkok', population: '10.5 million' }
+      }
+    };
+
+    const mainButton = document.getElementById('mainButton');
+    const continentGrid = document.getElementById('continentGrid');
+    const countryGrid = document.getElementById('countryGrid');
+    const infoBox = document.getElementById('infoBox');
+
+    mainButton.addEventListener('click', () => {
+      mainButton.style.display = 'none';
+      showContinents();
+    });
+
+    function showContinents() {
+      continentGrid.style.display = 'flex';
+      for (let cont in continents) {
+        const cube = document.createElement('div');
+        cube.className = 'cube';
+        cube.textContent = cont;
+        cube.onclick = () => showCountries(cont);
+        continentGrid.appendChild(cube);
+      }
+    }
+
+    function showCountries(continent) {
+      continentGrid.style.display = 'none';
+      countryGrid.innerHTML = '';
+      countryGrid.style.display = 'flex';
+      const countries = continents[continent];
+      for (let country in countries) {
+        const cube = document.createElement('div');
+        cube.className = 'cube';
+        cube.textContent = country;
+        cube.onclick = () => showCapitalInfo(countries[country], country);
+        countryGrid.appendChild(cube);
+      }
+    }
+
+    function showCapitalInfo(info, country) {
+      infoBox.style.display = 'block';
+      infoBox.innerHTML = `<strong>${country}</strong><br>Capital: ${info.capital}<br>Population: ${info.population}`;
+    }
+  </script></body>
+</html>
