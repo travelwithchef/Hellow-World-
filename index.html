@@ -1,24 +1,131 @@
-// File: App.jsx import React, { useState } from 'react'; import { Input } from '@/components/ui/input'; import { Card, CardContent } from '@/components/ui/card'; import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'; import { motion } from 'framer-motion';
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Country Data Visualizer</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #000;
+      color: #f8f8f8;
+    }
+    .container {
+      padding: 2rem;
+      max-width: 1200px;
+      margin: auto;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 2rem;
+      color: #ccc;
+    }
+    input {
+      width: 100%;
+      padding: 1rem;
+      background: #333;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      margin-bottom: 2rem;
+    }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+    }
+    .card {
+      background: #1a1a1a;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(255,255,255,0.05);
+      transition: transform 0.3s;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+    }
+    canvas {
+      margin-top: 3rem;
+      background-color: #1a1a1a;
+      border-radius: 12px;
+      padding: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Country Data Visualizer</h1>
+    <input type="text" id="search" placeholder="Search for a country..." />
+    <div class="cards" id="cardContainer"></div>
+    <canvas id="populationChart"></canvas>
+  </div>  <script>
+    const countries = [
+      { country: 'India', capital: 'New Delhi', population: 1393409038 },
+      { country: 'USA', capital: 'Washington D.C.', population: 331893745 },
+      { country: 'Japan', capital: 'Tokyo', population: 125960000 },
+      { country: 'Germany', capital: 'Berlin', population: 83240525 },
+      { country: 'Brazil', capital: 'Brasília', population: 213993437 },
+    ];
 
-const sampleData = [ { country: 'India', capital: 'New Delhi', population: 1393409038 }, { country: 'USA', capital: 'Washington D.C.', population: 331893745 }, { country: 'Japan', capital: 'Tokyo', population: 125960000 }, { country: 'Germany', capital: 'Berlin', population: 83240525 }, { country: 'Brazil', capital: 'Brasília', population: 213993437 }, ];
+    const cardContainer = document.getElementById('cardContainer');
+    const searchInput = document.getElementById('search');
 
-export default function App() { const [search, setSearch] = useState(''); const filteredData = sampleData.filter((item) => item.country.toLowerCase().includes(search.toLowerCase()) );
+    function renderCards(data) {
+      cardContainer.innerHTML = '';
+      data.forEach(({ country, capital, population }) => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <h2>${country}</h2>
+          <p><strong>Capital:</strong> ${capital}</p>
+          <p><strong>Population:</strong> ${population.toLocaleString()}</p>
+        `;
+        cardContainer.appendChild(card);
+      });
+    }
 
-return ( <div className="min-h-screen bg-black text-offwhite p-6"> <h1 className="text-4xl font-bold mb-6 text-center text-gray-200">Country Data Visualizer</h1> <Input placeholder="Search for a country..." className="mb-6 w-full max-w-md mx-auto bg-gray-800 text-white placeholder-gray-400" value={search} onChange={(e) => setSearch(e.target.value)} /> <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"> {filteredData.map((item, index) => ( <motion.div key={index} initial={{ opacity: 0 }} animate={{ opacity: 1 }}> <Card className="bg-gray-900 text-offwhite shadow-xl"> <CardContent className="p-4"> <h2 className="text-xl font-semibold text-white">{item.country}</h2> <p className="text-gray-300">Capital: {item.capital}</p> <p className="text-gray-400">Population: {item.population.toLocaleString()}</p> </CardContent> </Card> </motion.div> ))} </div>
+    searchInput.addEventListener('input', () => {
+      const query = searchInput.value.toLowerCase();
+      const filtered = countries.filter(c => c.country.toLowerCase().includes(query));
+      renderCards(filtered);
+      renderChart(filtered);
+    });
 
-<div className="mt-12">
-    <h2 className="text-2xl font-bold text-gray-200 text-center mb-4">Population Comparison</h2>
-    <ResponsiveContainer width="100%" height={300}>
-      <BarChart data={filteredData}>
-        <XAxis dataKey="country" stroke="#ccc" />
-        <YAxis stroke="#ccc" />
-        <Tooltip wrapperClassName="bg-black text-offwhite" />
-        <Bar dataKey="population" fill="#888888" />
-      </BarChart>
-    </ResponsiveContainer>
-  </div>
-</div>
+    function renderChart(data) {
+      const ctx = document.getElementById('populationChart').getContext('2d');
+      if (window.bar) window.bar.destroy();
+      window.bar = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: data.map(d => d.country),
+          datasets: [{
+            label: 'Population',
+            data: data.map(d => d.population),
+            backgroundColor: '#888',
+          }]
+        },
+        options: {
+          plugins: {
+            legend: {
+              labels: { color: '#ccc' }
+            }
+          },
+          scales: {
+            x: {
+              ticks: { color: '#ccc' },
+              grid: { color: '#333' }
+            },
+            y: {
+              ticks: { color: '#ccc' },
+              grid: { color: '#333' }
+            }
+          }
+        }
+      });
+    }
 
-); }
-
-            
+    renderCards(countries);
+    renderChart(countries);
+  </script></body>
+</html>
