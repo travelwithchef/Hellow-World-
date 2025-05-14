@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Capital Cities Discovery Dashboard</title>
+    <title>World-Class Capital Cities Analytics</title>
     <style>
         * {
             margin: 0;
@@ -20,11 +20,11 @@
 
         #sidebar {
             position: fixed;
-            left: -250px;
+            left: -300px;
             top: 0;
-            width: 250px;
+            width: 300px;
             height: 100%;
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 0.95);
             transition: left 0.3s ease;
             padding: 20px;
             z-index: 1000;
@@ -67,7 +67,7 @@
 
         #data-input {
             width: 100%;
-            height: 100px;
+            height: 120px;
             margin-top: 10px;
             padding: 10px;
             background: #808080;
@@ -77,7 +77,7 @@
             border-radius: 5px;
         }
 
-        #submit-data {
+        #submit-data, #semantic-query {
             width: 100%;
             padding: 10px;
             margin-top: 10px;
@@ -89,7 +89,7 @@
             transition: background 0.3s;
         }
 
-        #submit-data:hover {
+        #submit-data:hover, #semantic-query:hover {
             background: #FFFFFF;
         }
 
@@ -104,8 +104,8 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 500px;
-            height: 500px;
+            width: 600px;
+            height: 600px;
         }
 
         #visualization-canvas {
@@ -114,15 +114,15 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(0, 0, 0, 0.4);
         }
 
         #filter-panel {
             position: fixed;
             right: 20px;
             top: 20px;
-            width: 300px;
-            background: rgba(0, 0, 0, 0.9);
+            width: 350px;
+            background: rgba(0, 0, 0, 0.95);
             padding: 20px;
             border-radius: 10px;
             display: none;
@@ -133,7 +133,7 @@
             color: #F5F5F5;
         }
 
-        #filter-panel input, #filter-panel button {
+        #filter-panel input, #filter-panel select, #filter-panel button {
             width: 100%;
             padding: 10px;
             margin: 5px 0;
@@ -156,12 +156,13 @@
 
         .visualization {
             position: absolute;
-            background: rgba(245, 245, 245, 0.1);
+            background: rgba(245, 245, 245, 0.15);
             border: 1px solid #808080;
             border-radius: 10px;
-            padding: 10px;
+            padding: 15px;
             cursor: move;
             overflow: hidden;
+            transition: transform 0.2s;
         }
 
         #upload-zone {
@@ -192,7 +193,7 @@
         }
 
         th, td {
-            padding: 5px;
+            padding: 8px;
             border: 1px solid #808080;
             text-align: left;
         }
@@ -201,26 +202,44 @@
             position: absolute;
             background: #808080;
             color: #FFFFFF;
-            padding: 5px;
+            padding: 5px 10px;
             border-radius: 3px;
             font-size: 12px;
             pointer-events: none;
             z-index: 1002;
+        }
+
+        #insights-panel {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 300px;
+            background: rgba(0, 0, 0, 0.95);
+            padding: 15px;
+            border-radius: 10px;
+            color: #F5F5F5;
+            display: none;
         }
     </style>
 </head>
 <body>
     <div id="sidebar">
         <ul>
-            <li onclick="toggleFilterPanel()" data-tooltip="Discover capitals with hyperbolic filtering">Hyperbolic Cascade Filter</li>
+            <li onclick="toggleFilterPanel()" data-tooltip="Explore with advanced hyperbolic filters">Hyperbolic Cascade Filter</li>
             <li onclick="addContinentChart()" data-tooltip="Population by continent">Continent Population Chart</li>
-            <li onclick="addHeatmap()" data-tooltip="Population distribution heatmap">Population Heatmap</li>
+            <li onclick="addHeatmap()" data-tooltip="Population distribution">Population Heatmap</li>
             <li onclick="addTopNTable()" data-tooltip="Most populous capitals">Top 5 Capitals</li>
+            <li onclick="addClusterView()" data-tooltip="Cluster capitals by relevance">Cluster Analysis</li>
             <li onclick="resetCanvas()" data-tooltip="Clear visualizations">Reset Canvas</li>
             <li>
                 Paste Data (CSV):
                 <textarea id="data-input" placeholder="Paste CSV data (e.g., id,country,capital,population,continent,connections)"></textarea>
                 <button id="submit-data">Submit Data</button>
+            </li>
+            <li>
+                Semantic Query:
+                <input type="text" id="semantic-input" placeholder="e.g., large African capitals">
+                <button id="semantic-query">Apply Query</button>
             </li>
         </ul>
     </div>
@@ -232,18 +251,33 @@
 
     <div id="filter-panel">
         <h3>Hyperbolic Relevance Cascade</h3>
-        <input type="text" id="filter-query" placeholder="Enter query (e.g., population > 5000000)">
+        <select id="filter-field">
+            <option value="population">Population</option>
+            <option value="continent">Continent</option>
+        </select>
+        <select id="filter-operator">
+            <option value=">">Greater Than</option>
+            <option value="<">Less Than</option>
+            <option value="=">Equals</option>
+            <option value="contains">Contains (Continent)</option>
+        </select>
+        <input type="text" id="filter-value" placeholder="Enter value (e.g., 5000000 or Africa)">
         <input type="range" id="fractal-depth" min="1" max="10" value="5">
         <label for="fractal-depth">Cascade Depth: <span id="depth-value">5</span></label>
         <button onclick="applyHyperbolicFilter()">Apply Filter</button>
     </div>
 
     <div id="upload-zone">Drag & Drop CSV File</div>
+    <div id="insights-panel">
+        <h3>Insights</h3>
+        <p id="insights-text">Loading insights...</p>
+    </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/seedrandom/3.0.5/seedrandom.min.js"></script>
     <script>
         // Dataset
         let dataset = [
@@ -273,7 +307,7 @@
             { id: 24, country: "Guinea", capital: "Conakry", population: 1800000, continent: "Africa", connections: [25, 43] },
             { id: 25, country: "Guinea-Bissau", capital: "Bissau", population: 492000, continent: "Africa", connections: [24, 42] },
             { id: 26, country: "Kenya", capital: "Nairobi", population: 9600000, continent: "Africa", connections: [20, 49] },
-            { id: 27, country: "Lesotho", capital: "Maseru", population: 330000, continent Tribes: [46] },
+            { id: 27, country: "Lesotho", capital: "Maseru", population: 330000, continent: "Africa", connections: [46] },
             { id: 28, country: "Liberia", capital: "Monrovia", population: 1200000, continent: "Africa", connections: [24] },
             { id: 29, country: "Libya", capital: "Tripoli", population: 1200000, continent: "Africa", connections: [16, 35] },
             { id: 30, country: "Madagascar", capital: "Antananarivo", population: 1400000, continent: "Africa", connections: [11] },
@@ -337,8 +371,8 @@
             { id: 88, country: "Saudi Arabia", capital: "Riyadh", population: 7700000, continent: "Asia", connections: [73, 87] },
             { id: 89, country: "Singapore", capital: "Singapore", population: 5900000, continent: "Asia", connections: [77] },
             { id: 90, country: "South Korea", capital: "Seoul", population: 9700000, continent: "Asia", connections: [70, 82] },
-            { id: 91, country: "Sri Lanka", capital: "Sri Jayawardenepura Kotte", population: 115000, continent: "Asia", connections: [78] },
-            { id: 92, country: "Syria", capital: "Damascus", population: 2100000, continent: "Asia", connections: [76, 85] },
+            { id: 91, country: "Sri Lanka", capital: "Sri Jayawardenepura Kotte", population: 115000, continent: "Asia", connections: 
+              { id: 92, country: "Syria", capital: "Damascus", population: 2100000, continent: "Asia", connections: [76, 85] },
             { id: 93, country: "Taiwan", capital: "Taipei", population: 2600000, continent: "Asia", connections: [70] },
             { id: 94, country: "Tajikistan", capital: "Dushanbe", population: 1200000, continent: "Asia", connections: [55, 74] },
             { id: 95, country: "Thailand", capital: "Bangkok", population: 10700000, continent: "Asia", connections: [62, 77] },
@@ -349,8 +383,6 @@
             { id: 100, country: "Uzbekistan", capital: "Tashkent", population: 2900000, continent: "Asia", connections: [74, 98] },
             { id: 101, country: "Vietnam", capital: "Hanoi", population: 8400000, continent: "Asia", connections: [62, 75] },
             { id: 102, country: "Yemen", capital: "Sana'a", population: 2900000, continent: "Asia", connections: [83, 85] },
-    
-    
             { id: 103, country: "Albania", capital: "Tirana", population: 557000, continent: "Europe", connections: [108, 130] },
             { id: 104, country: "Andorra", capital: "Andorra la Vella", population: 22000, continent: "Europe", connections: [116] },
             { id: 105, country: "Austria", capital: "Vienna", population: 1900000, continent: "Europe", connections: [112, 139] },
@@ -451,30 +483,30 @@
         // Three.js Globe Setup
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ alpha: true });
-        renderer.setSize(500, 500);
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.setSize(600, 600);
         document.getElementById('holographic-globe').appendChild(renderer.domElement);
 
-        const geometry = new THREE.SphereGeometry(1, 32, 32);
+        const geometry = new THREE.SphereGeometry(1, 64, 64);
         const material = new THREE.MeshBasicMaterial({ color: 0x808080, wireframe: true });
         const sphere = new THREE.Mesh(geometry, material);
         scene.add(sphere);
 
-        let nodes = [];
-        let edges = [];
+        let nodes = [], edges = [];
         function updateGlobe() {
             nodes.forEach(n => scene.remove(n));
             edges.forEach(e => scene.remove(e));
             nodes = [];
             edges = [];
             const maxPop = Math.max(...dataset.map(d => d.population));
+            const seed = new Math.seedrandom('globe');
             dataset.forEach(d => {
-                const phi = Math.random() * Math.PI * 2;
-                const theta = Math.random() * Math.PI;
+                const phi = seed() * Math.PI * 2;
+                const theta = seed() * Math.PI;
                 const x = Math.sin(theta) * Math.cos(phi);
                 const y = Math.sin(theta) * Math.sin(phi);
                 const z = Math.cos(theta);
-                const size = 0.02 + Math.log1p(d.population) / Math.log1p(maxPop) * 0.1;
+                const size = 0.02 + Math.log1p(d.population) / Math.log1p(maxPop) * 0.12;
                 const nodeGeo = new THREE.SphereGeometry(size, 16, 16);
                 const nodeMat = new THREE.MeshBasicMaterial({ color: 0xF5F5F5 });
                 const node = new THREE.Mesh(nodeGeo, nodeMat);
@@ -483,7 +515,6 @@
                 scene.add(node);
                 nodes.push(node);
 
-                // Add edges
                 (d.connections || []).forEach(c => {
                     const target = dataset.find(t => t.id === c);
                     if (target) {
@@ -493,7 +524,7 @@
                                 node.position,
                                 tNode.position
                             ]);
-                            const edgeMat = new THREE.LineBasicMaterial({ color: 0x808080, opacity: 0.5, transparent: true });
+                            const edgeMat = new THREE.LineBasicMaterial({ color: 0x808080, opacity: 0.3, transparent: true });
                             const edge = new THREE.Line(edgeGeo, edgeMat);
                             scene.add(edge);
                             edges.push(edge);
@@ -504,14 +535,12 @@
         }
         updateGlobe();
 
-        camera.position.z = 3;
+        camera.position.z = 2.5;
 
         function animateGlobe() {
             requestAnimationFrame(animateGlobe);
-            sphere.rotation.y += 0.005;
-            nodes.forEach(n => {
-                n.rotation.y += 0.01;
-            });
+            sphere.rotation.y += 0.003;
+            nodes.forEach(n => n.rotation.y += 0.005);
             renderer.render(scene, camera);
         }
         animateGlobe();
@@ -519,8 +548,7 @@
         // Infinite Canvas
         let transform = { x: 0, y: 0, scale: 1 };
         const canvas = document.getElementById('visualization-canvas');
-        let isDragging = false;
-        let startX, startY;
+        let isDragging = false, startX, startY;
 
         canvas.addEventListener('mousedown', e => {
             isDragging = true;
@@ -539,15 +567,14 @@
         canvas.addEventListener('mouseup', () => isDragging = false);
         canvas.addEventListener('wheel', e => {
             e.preventDefault();
-            const zoomSpeed = 0.1;
+            const zoomSpeed = 0.05;
             transform.scale *= e.deltaY > 0 ? 1 - zoomSpeed : 1 + zoomSpeed;
-            transform.scale = Math.max(0.1, Math.min(10, transform.scale));
+            transform.scale = Math.max(0.2, Math.min(8, transform.scale));
             updateCanvas();
         });
 
         function updateCanvas() {
-            const visElements = document.querySelectorAll('.visualization');
-            visElements.forEach(el => {
+            document.querySelectorAll('.visualization').forEach(el => {
                 const x = parseFloat(el.dataset.x);
                 const y = parseFloat(el.dataset.y);
                 el.style.transform = `translate(${transform.x + x * transform.scale}px, ${transform.y + y * transform.scale}px) scale(${transform.scale})`;
@@ -558,15 +585,15 @@
         function addContinentChart() {
             const visDiv = document.createElement('div');
             visDiv.className = 'visualization';
-            visDiv.style.width = '350px';
-            visDiv.style.height = '250px';
+            visDiv.style.width = '400px';
+            visDiv.style.height = '300px';
             visDiv.dataset.x = Math.random() * 500;
             visDiv.dataset.y = Math.random() * 500;
 
             const svg = d3.select(visDiv)
                 .append('svg')
-                .attr('width', 350)
-                .attr('height', 250);
+                .attr('width', 400)
+                .attr('height', 300);
 
             const continents = d3.group(dataset, d => d.continent);
             const continentData = Array.from(continents, ([key, values]) => ({
@@ -576,16 +603,16 @@
 
             const x = d3.scaleBand()
                 .domain(continentData.map(d => d.continent))
-                .range([40, 310])
-                .padding(0.1);
+                .range([50, 350])
+                .padding(0.15);
 
             const y = d3.scaleLog()
                 .domain([1000000, d3.max(continentData, d => d.population)])
-                .range([210, 30])
+                .range([250, 40])
                 .clamp(true);
 
             svg.append('g')
-                .attr('transform', 'translate(0,210)')
+                .attr('transform', 'translate(0,250)')
                 .call(d3.axisBottom(x))
                 .selectAll('text')
                 .attr('transform', 'rotate(-45)')
@@ -593,7 +620,7 @@
                 .attr('fill', '#F5F5F5');
 
             svg.append('g')
-                .attr('transform', 'translate(40,0)')
+                .attr('transform', 'translate(50,0)')
                 .call(d3.axisLeft(y).ticks(5).tickFormat(d3.format('.2s')))
                 .selectAll('text')
                 .attr('fill', '#F5F5F5');
@@ -606,8 +633,9 @@
                 .attr('x', d => x(d.continent))
                 .attr('y', d => y(d.population))
                 .attr('width', x.bandwidth())
-                .attr('height', d => 210 - y(d.population))
-                .attr('fill', '#808080');
+                .attr('height', d => 250 - y(d.population))
+                .attr('fill', '#808080')
+                .attr('opacity', 0.8);
 
             const tooltip = d3.select('body').append('div').attr('class', 'tooltip').style('opacity', 0);
             bars.on('mouseover', function(event, d) {
@@ -622,24 +650,23 @@
             canvas.appendChild(visDiv);
             makeDraggable(visDiv);
             updateCanvas();
-            }
+        }
 
         // Population Heatmap
         function addHeatmap() {
             const visDiv = document.createElement('div');
             visDiv.className = 'visualization';
-            visDiv.style.width = '300px';
-            visDiv.style.height = '200px';
+            visDiv.style.width = '350px';
+            visDiv.style.height = '250px';
             visDiv.dataset.x = Math.random() * 500;
             visDiv.dataset.y = Math.random() * 500;
 
             const svg = d3.select(visDiv)
                 .append('svg')
-                .attr('width', 300)
-                .attr('height', 200);
+                .attr('width', 350)
+                .attr('height', 250);
 
-            const gridSize = 20;
-            const buckets = 9;
+            const gridSize = 25;
             const colors = d3.scaleLinear()
                 .domain([0, 1])
                 .range(['#808080', '#F5F5F5']);
@@ -656,11 +683,12 @@
                 .data(data)
                 .enter()
                 .append('rect')
-                .attr('x', d => d.x * gridSize + 30)
-                .attr('y', d => d.y * gridSize + 10)
-                .attr('width', gridSize)
-                .attr('height', gridSize)
-                .attr('fill', d => colors(d.value));
+                .attr('x', d => d.x * gridSize + 40)
+                .attr('y', d => d.y * gridSize + 20)
+                .attr('width', gridSize - 2)
+                .attr('height', gridSize - 2)
+                .attr('fill', d => colors(d.value))
+                .attr('rx', 3);
 
             const tooltip = d3.select('body').append('div').attr('class', 'tooltip').style('opacity', 0);
             rects.on('mouseover', function(event, d) {
@@ -681,7 +709,7 @@
         function addTopNTable() {
             const visDiv = document.createElement('div');
             visDiv.className = 'visualization';
-            visDiv.style.width = '300px';
+            visDiv.style.width = '350px';
             visDiv.style.height = '200px';
             visDiv.dataset.x = Math.random() * 500;
             visDiv.dataset.y = Math.random() * 500;
@@ -702,18 +730,102 @@
             updateCanvas();
         }
 
-        // Make Visualizations Draggable
-        function makeDraggable(el) {
-            let isDragging = false;
-            let startX, startY;
+        // Cluster Analysis
+        function addClusterView() {
+            const visDiv = document.createElement('div');
+            visDiv.className = 'visualization';
+            visDiv.style.width = '400px';
+            visDiv.style.height = '400px';
+            visDiv.dataset.x = Math.random() * 500;
+            visDiv.dataset.y = Math.random() * 500;
 
+            const svg = d3.select(visDiv)
+                .append('svg')
+                .attr('width', 400)
+                .attr('height', 400);
+
+            const nodes = dataset.map(d => ({
+                id: d.id,
+                capital: d.capital,
+                population: d.population,
+                continent: d.continent
+            }));
+
+            const links = dataset.flatMap(d =>
+                (d.connections || []).map(c => ({ source: d.id, target: c }))
+            );
+
+            const simulation = d3.forceSimulation(nodes)
+                .force('link', d3.forceLink(links).id(d => d.id).distance(50))
+                .force('charge', d3.forceManyBody().strength(-100))
+                .force('center', d3.forceCenter(200, 200));
+
+            const link = svg.append('g')
+                .selectAll('line')
+                .data(links)
+                .enter()
+                .append('line')
+                .attr('stroke', '#808080')
+                .attr('stroke-opacity', 0.5);
+
+            const node = svg.append('g')
+                .selectAll('circle')
+                .data(nodes)
+                .enter()
+                .append('circle')
+                .attr('r', d => 5 + Math.log1p(d.population) / 5)
+                .attr('fill', '#F5F5F5')
+                .call(d3.drag()
+                    .on('start', d => {
+                        if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+                        d.fx = d.x;
+                        d.fy = d.y;
+                    })
+                    .on('drag', d => {
+                        d.fx = d3.event.x;
+                        d.fy = d3.event.y;
+                    })
+                    .on('end', d => {
+                        if (!d3.event.active) simulation.alphaTarget(0);
+                        d.fx = null;
+                        d.fy = null;
+                    }));
+
+            const tooltip = d3.select('body').append('div').attr('class', 'tooltip').style('opacity', 0);
+            node.on('mouseover', function(event, d) {
+                tooltip.transition().duration(200).style('opacity', 0.9);
+                tooltip.html(`${d.capital}: ${d.population.toLocaleString()}`)
+                    .style('left', (event.pageX + 10) + 'px')
+                    .style('top', (event.pageY - 28) + 'px');
+            }).on('mouseout', function() {
+                tooltip.transition().duration(500).style('opacity', 0);
+            });
+
+            simulation.on('tick', () => {
+                link
+                    .attr('x1', d => d.source.x)
+                    .attr('y1', d => d.source.y)
+                    .attr('x2', d => d.target.x)
+                    .attr('y2', d => d.target.y);
+                node
+                    .attr('cx', d => d.x)
+                    .attr('cy', d => d.y);
+            });
+
+            canvas.appendChild(visDiv);
+            makeDraggable(visDiv);
+            updateCanvas();
+        }
+
+        // Draggable Visualizations
+        function makeDraggable(el) {
+            let isDragging = false, startX, startY;
             el.addEventListener('mousedown', e => {
                 isDragging = true;
                 startX = e.clientX - parseFloat(el.dataset.x);
                 startY = e.clientY - parseFloat(el.dataset.y);
                 e.stopPropagation();
             });
-
             document.addEventListener('mousemove', e => {
                 if (isDragging) {
                     el.dataset.x = (e.clientX - startX) / transform.scale;
@@ -721,36 +833,39 @@
                     updateCanvas();
                 }
             });
-
             document.addEventListener('mouseup', () => isDragging = false);
         }
 
-        // Hyperbolic Fractal Relevance Cascade
-        function hyperbolicRelevanceCascade(query, depth) {
-            const condition = query.match(/(\w+)\s*(>|<|=)\s*(\d+)/);
-            if (!condition) {
-                alert('Invalid query. Use format: population > 5000000');
+        // Hyperbolic Fractal Relevance Cascade 2.0
+        function hyperbolicRelevanceCascade(field, operator, value, depth) {
+            const scores = new Map(dataset.map(d => [d.id, 0]));
+            const filtered = dataset.filter(d => {
+                if (field === 'population') {
+                    const num = parseInt(value);
+                    if (isNaN(num)) return false;
+                    if (operator === '>') return d[field] > num;
+                    if (operator === '<') return d[field] < num;
+                    if (operator === '=') return d[field] === num;
+                } else if (field === 'continent' && operator === 'contains') {
+                    return d[field].toLowerCase().includes(value.toLowerCase());
+                }
+                return false;
+            });
+
+            if (filtered.length === 0) {
+                alert('No data matches the filter criteria.');
                 return dataset;
             }
 
-            const field = condition[1];
-            const operator = condition[2];
-            const value = parseInt(condition[3]);
+            filtered.forEach(d => scores.set(d.id, 1));
 
-            if (field !== 'population') {
-                alert('Only "population" field is supported.');
-                return dataset;
-            }
-
-            // Map nodes to Poincaré disk
             const poincarePositions = dataset.map(d => ({
                 id: d.id,
-                x: Math.random() * 0.8, // Within unit disk
-                y: Math.random() * 0.8,
+                x: MathNFC.random() * 0.7,
+                y: Math.random() * 0.7,
                 radius: Math.log1p(d.population) / 20
             }));
 
-            // Calculate hyperbolic distances
             function hyperbolicDistance(p1, p2) {
                 const z1 = { x: p1.x, y: p1.y };
                 const z2 = { x: p2.x, y: p2.y };
@@ -759,16 +874,6 @@
                 const norm2 = z2.x * z2.x + z2.y * z2.y;
                 return Math.acosh(1 + 2 * (norm1 + norm2 - 2 * dot) / ((1 - norm1) * (1 - norm2)));
             }
-
-            const scores = new Map(dataset.map(d => [d.id, 0]));
-            const filtered = dataset.filter(d => {
-                if (operator === '>') return d[field] > value;
-                if (operator === '<') return d[field] < value;
-                if (operator === '=') return d[field] === value;
-                return false;
-            });
-
-            filtered.forEach(d => scores.set(d.id, 1));
 
             for (let i = 0; i < depth; i++) {
                 const newScores = new Map(scores);
@@ -779,7 +884,7 @@
                         const p2 = poincarePositions.find(p => p.id === c);
                         if (p2) {
                             const dist = hyperbolicDistance(p1, p2);
-                            total += (scores.get(c) || 0) * Math.exp(-dist);
+                            total += (scores.get(c) || 0) * Math.exp(-dist * 0.5);
                         }
                     });
                     newScores.set(d.id, total);
@@ -793,6 +898,22 @@
                 .sort((a, b) => b.relevance - a.relevance);
         }
 
+        // Semantic Query Parser (Simplified)
+        function parseSemanticQuery(query) {
+            query = query.toLowerCase().trim();
+            if (query.includes('large') && query.includes('african')) {
+                return { field: 'continent', operator: 'contains', value: 'Africa', secondary: { field: 'population', operator: '>', value: 5000000 } };
+            } else if (query.includes('capitals') && query.includes('asia')) {
+                return { field: 'continent', operator: 'contains', value: 'Asia' };
+            } else if (query.includes('over') && query.includes('million')) {
+                const match = query.match(/over\s+(\d+)\s+million/);
+                if (match) {
+                    return { field: 'population', operator: '>', value: parseInt(match[1]) * 1000000 };
+                }
+            }
+            return null;
+        }
+
         // Filter Panel
         function toggleFilterPanel() {
             const panel = document.getElementById('filter-panel');
@@ -804,25 +925,69 @@
         });
 
         function applyHyperbolicFilter() {
-            const query = document.getElementById('filter-query').value.trim();
-            if (!query) {
-                alert('Please enter a query (e.g., population > 5000000).');
+            const field = document.getElementById('filter-field').value;
+            const operator = document.getElementById('filter-operator').value;
+            const value = document.getElementById('filter-value').value.trim();
+            if (!value) {
+                alert('Please enter a filter value.');
                 return;
             }
             const depth = parseInt(document.getElementById('fractal-depth').value);
-            const filteredData = hyperbolicRelevanceCascade(query, depth);
-            console.log('Filtered Data:', filteredData);
+            const filteredData = hyperbolicRelevanceCascade(field, operator, value, depth);
+            updateGlobeVisualization(filteredData);
+            generateInsights(filteredData);
+        }
+
+        function applySemanticFilter() {
+            const query = document.getElementById('semantic-input').value.trim();
+            if (!query) {
+                alert('Please enter a semantic query.');
+                return;
+            }
+            const parsed = parseSemanticQuery(query);
+            if (!parsed) {
+                alert('Unsupported query. Try "large African capitals" or "capitals over 5 million".');
+                return;
+            }
+            let filteredData = dataset;
+            if (parsed.field === 'continent') {
+                filteredData = hyperbolicRelevanceCascade(parsed.field, parsed.operator, parsed.value, 5);
+            } else {
+                filteredData = hyperbolicRelevanceCascade(parsed.field, parsed.operator, parsed.value, 5);
+            }
+            if (parsed.secondary) {
+                filteredData = hyperbolicRelevanceCascade(parsed.secondary.field, parsed.secondary.operator, parsed.secondary.value, 5);
+            }
+            updateGlobeVisualization(filteredData);
+            generateInsights(filteredData);
+        }
+
+        function updateGlobeVisualization(filteredData) {
             const maxRelevance = Math.max(...filteredData.map(d => d.relevance));
             nodes.forEach(n => {
                 const d = filteredData.find(fd => fd.id === n.userData.id);
                 const intensity = d.relevance / (maxRelevance || 1);
-                n.material.color.setRGB(intensity, intensity, intensity); // Greyscale
+                n.material.color.setRGB(intensity, intensity, intensity);
+                n.scale.setScalar(1 + intensity * 0.5);
             });
             edges.forEach(e => {
-                const sourceId = e.geometry.attributes.position.array[0]; // Simplified
+                const sourceId = e.geometry.attributes.position.array[0];
                 const d = filteredData.find(fd => fd.id === sourceId);
-                e.material.opacity = d ? d.relevance / (maxRelevance || 1) * 0.5 : 0.1;
+                e.material.opacity = d ? d.relevance / (maxRelevance || 1) * 0.4 : 0.1;
             });
+        }
+
+        // Insights Generation
+        function generateInsights(data) {
+            const topCities = data.slice(0, 3).map(d => d.capital).join(', ');
+            const avgPop = d3.mean(data, d => d.population).toLocaleString();
+            const insights = [
+                `Top relevant capitals: ${topCities}`,
+                `Average population: ${avgPop}`,
+                `Total cities: ${data.length}`
+            ];
+            document.getElementById('insights-text').innerHTML = insights.join('<br>');
+            document.getElementById('insights-panel').style.display = 'block';
         }
 
         // Reset Canvas
@@ -830,6 +995,7 @@
             canvas.innerHTML = '';
             transform = { x: 0, y: 0, scale: 1 };
             updateCanvas();
+            document.getElementById('insights-panel').style.display = 'none';
         }
 
         // Paste Data
@@ -861,7 +1027,6 @@
                         alert('No valid data found. Ensure CSV has id,country,capital,population,continent,connections columns.');
                         return;
                     }
-                    console.log('Pasted Data:', dataset);
                     updateGlobe();
                     resetCanvas();
                     addContinentChart();
@@ -904,7 +1069,6 @@
                             alert('No valid data found in CSV.');
                             return;
                         }
-                        console.log('Uploaded Data:', dataset);
                         updateGlobe();
                         resetCanvas();
                         addContinentChart();
@@ -920,9 +1084,4 @@
             }
         });
 
-        // Initialize
-        addContinentChart();
-        addTopNTable();
-    </script>
-</body>
-</html>
+        // Semantic Query
