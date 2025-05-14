@@ -1,118 +1,369 @@
-import React, { useState } from "react"; import { Input } from "@/components/ui/input"; import { Button } from "@/components/ui/button"; import { Card, CardContent } from "@/components/ui/card"; import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts"; import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"; import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"; import { ScrollArea } from "@/components/ui/scroll-area"; import { MathComponent } from "mathjax-react";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Science Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
 
-const defaultCountries = [ { country: "India", capital: "New Delhi", population: 1393409038, region: "Asia" }, { country: "USA", capital: "Washington, D.C.", population: 331893745, region: "North America" }, { country: "France", capital: "Paris", population: 67391582, region: "Europe" }, ];
+        body {
+            background-color: #000000;
+            color: #F5F5F5;
+            padding: 20px;
+        }
 
-export default function CountryDataVisualizer() { const [countries, setCountries] = useState(defaultCountries); const [filterRegion, setFilterRegion] = useState(""); const [newCountry, setNewCountry] = useState({ country: "", capital: "", population: "", region: "" });
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
 
-const filteredData = filterRegion ? countries.filter((item) => item.region === filterRegion) : countries;
+        h1, h2 {
+            color: #F5F5F5;
+            text-align: center;
+            margin-bottom: 20px;
+        }
 
-const handleAddCountry = () => { if (!newCountry.country || !newCountry.capital || !newCountry.population || !newCountry.region) return; const updated = [ ...countries, { ...newCountry, population: parseInt(newCountry.population) }, ]; setCountries(updated); setNewCountry({ country: "", capital: "", population: "", region: "" }); };
+        .form-section, .filter-section, .stats-section {
+            background-color: #1C1C1C;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
 
-const totalPopulation = filteredData.reduce((acc, curr) => acc + curr.population, 0); const meanPopulation = (totalPopulation / filteredData.length).toFixed(2);
+        .form-group {
+            margin-bottom: 15px;
+        }
 
-return ( <div className="min-h-screen bg-black text-offwhite p-4 font-sans"> <h1 className="text-3xl font-bold mb-4">Country Statistics Dashboard</h1>
+        label {
+            display: block;
+            color: #F5F5F5;
+            margin-bottom: 5px;
+        }
 
-<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-    <Card className="bg-gray-800 text-offwhite">
-      <CardContent className="p-4 space-y-2">
-        <h2 className="text-xl font-semibold">Add a Country</h2>
-        <Input
-          placeholder="Country"
-          value={newCountry.country}
-          onChange={(e) => setNewCountry({ ...newCountry, country: e.target.value })}
-        />
-        <Input
-          placeholder="Capital"
-          value={newCountry.capital}
-          onChange={(e) => setNewCountry({ ...newCountry, capital: e.target.value })}
-        />
-        <Input
-          placeholder="Population"
-          type="number"
-          value={newCountry.population}
-          onChange={(e) => setNewCountry({ ...newCountry, population: e.target.value })}
-        />
-        <Input
-          placeholder="Region"
-          value={newCountry.region}
-          onChange={(e) => setNewCountry({ ...newCountry, region: e.target.value })}
-        />
-        <Button className="bg-offwhite text-black" onClick={handleAddCountry}>Add Country</Button>
-      </CardContent>
-    </Card>
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            background-color: #808080;
+            border: none;
+            color: #F5F5F5;
+            border-radius: 4px;
+        }
 
-    <Card className="bg-gray-800 text-offwhite">
-      <CardContent className="p-4">
-        <h2 className="text-xl font-semibold mb-2">Filter by Region</h2>
-        <Select onValueChange={setFilterRegion}>
-          <SelectTrigger className="bg-black text-offwhite border-gray-600">
-            <SelectValue placeholder="Choose Region" />
-          </SelectTrigger>
-          <SelectContent className="bg-black text-offwhite">
-            <SelectItem value="">All</SelectItem>
-            {[...new Set(countries.map((c) => c.region))].map((region) => (
-              <SelectItem key={region} value={region}>{region}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </CardContent>
-    </Card>
-  </div>
+        button {
+            background-color: #808080;
+            color: #F5F5F5;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
 
-  <Card className="bg-gray-900 text-offwhite mb-6">
-    <CardContent className="p-4">
-      <h2 className="text-xl font-semibold mb-4">Country Data Table</h2>
-      <ScrollArea className="max-h-64">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Country</TableHead>
-              <TableHead>Capital</TableHead>
-              <TableHead>Population</TableHead>
-              <TableHead>Region</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredData.map((item, index) => (
-              <TableRow key={index}>
-                <TableCell>{item.country}</TableCell>
-                <TableCell>{item.capital}</TableCell>
-                <TableCell>{item.population.toLocaleString()}</TableCell>
-                <TableCell>{item.region}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </ScrollArea>
-    </CardContent>
-  </Card>
+        button:hover {
+            background-color: #A9A9A9;
+        }
 
-  <Card className="bg-gray-900 text-offwhite mb-6">
-    <CardContent className="p-4">
-      <h2 className="text-xl font-semibold mb-4">Population Chart</h2>
-      <ResponsiveContainer width="100%" height={300}>
-        <BarChart data={filteredData}>
-          <XAxis dataKey="country" stroke="#ccc" />
-          <YAxis stroke="#ccc" />
-          <Tooltip />
-          <Legend />
-          <Bar dataKey="population" fill="#8884d8" />
-        </BarChart>
-      </ResponsiveContainer>
-    </CardContent>
-  </Card>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: #1C1C1C;
+        }
 
-  <Card className="bg-gray-900 text-offwhite">
-    <CardContent className="p-4">
-      <h2 className="text-xl font-semibold mb-2">Mathematical Analysis</h2>
-      <p>Total Countries: {filteredData.length}</p>
-      <p>Total Population: {totalPopulation.toLocaleString()}</p>
-      <p>Mean Population: {meanPopulation.toLocaleString()}</p>
-      <MathComponent tex={`\\text{Population Mean} = \\frac{${totalPopulation}}{${filteredData.length}} = ${meanPopulation}`} />
-    </CardContent>
-  </Card>
-</div>
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #808080;
+            color: #F5F5F5;
+        }
 
-); }
+        th {
+            background-color: #000000;
+        }
 
-            
+        .chart-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        canvas {
+            max-width: 100%;
+            background-color: #1C1C1C;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .stats-section p {
+            margin: 10px 0;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            canvas {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Data Science Dashboard</h1>
+
+        <!-- Form to Add Data -->
+        <div class="form-section">
+            <h2>Add Country Data</h2>
+            <div class="form-group">
+                <label for="country">Country</label>
+                <input type="text" id="country" placeholder="Enter country name">
+            </div>
+            <div class="form-group">
+                <label for="capital">Capital City</label>
+                <input type="text" id="capital" placeholder="Enter capital city">
+            </div>
+            <div class="form-group">
+                <label for="population">Population</label>
+                <input type="number" id="population" placeholder="Enter population">
+            </div>
+            <button onclick="addData()">Add Data</button>
+        </div>
+
+        <!-- Filter Section -->
+        <div class="filter-section">
+            <h2>Filters & Sorting</h2>
+            <div class="form-group">
+                <label for="minPopulation">Min Population</label>
+                <input type="number" id="minPopulation" placeholder="Min population">
+            </div>
+            <div class="form-group">
+                <label for="maxPopulation">Max Population</label>
+                <input type="number" id="maxPopulation" placeholder="Max population">
+            </div>
+            <button onclick="applyFilters()">Apply Filters</button>
+            <button onclick="findOutliers()">Find Outliers</button>
+            <button onclick="sortData('asc')">Sort by Population (Asc)</button>
+            <button onclick="sortData('desc')">Sort by Population (Desc)</button>
+        </div>
+
+        <!-- Data Table -->
+        <table id="dataTable">
+            <thead>
+                <tr>
+                    <th>Country</th>
+                    <th>Capital</th>
+                    <th>Population</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+
+        <!-- Statistics -->
+        <div class="stats-section">
+            <h2>Statistics</h2>
+            <p id="totalCountries">Total Countries: 0</p>
+            <p id="totalPopulation">Total Population: 0</p>
+            <p id="meanPopulation">Mean Population: 0</p>
+            <p id="medianPopulation">Median Population: 0</p>
+            <p id="stdDevPopulation">Standard Deviation: 0</p>
+            <p id="populationRange">Population Range: 0</p>
+        </div>
+
+        <!-- Charts -->
+        <div class="chart-container">
+            <canvas id="barChart" width="400" height="200"></canvas>
+            <canvas id="pieChart" width="400" height="200"></canvas>
+        </div>
+    </div>
+
+    <!-- External Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/10.6.4/math.min.js"></script>
+    <script>
+        let data = [];
+        let filteredData = [];
+        let barChart, pieChart;
+
+        // Initialize Charts
+        function initCharts() {
+            const barCtx = document.getElementById('barChart').getContext('2d');
+            const pieCtx = document.getElementById('pieChart').getContext('2d');
+
+            barChart = new Chart(barCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Population',
+                        data: [],
+                        backgroundColor: '#808080',
+                        borderColor: '#F5F5F5',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: '#F5F5F5' },
+                            grid: { color: '#808080' }
+                        },
+                        x: {
+                            ticks: { color: '#F5F5F5' },
+                            grid: { color: '#808080' }
+                        }
+                    },
+                    plugins: {
+                        legend: { labels: { color: '#F5F5F5' } }
+                    }
+                }
+            });
+
+            pieChart = new Chart(pieCtx, {
+                type: 'pie',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        backgroundColor: ['#808080', '#A9A9A9', '#F5F5F5', '#D3D3D3'],
+                        borderColor: '#000000',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    plugins: {
+                        legend: { labels: { color: '#F5F5F5' } }
+                    }
+                }
+            });
+        }
+
+        // Add Data
+        function addData() {
+            const country = document.getElementById('country').value.trim();
+            const capital = document.getElementById('capital').value.trim();
+            const population = parseInt(document.getElementById('population').value);
+
+            if (country && capital && population > 0) {
+                data.push({ country, capital, population });
+                filteredData = [...data];
+                document.getElementById('country').value = '';
+                document.getElementById('capital').value = '';
+                document.getElementById('population').value = '';
+                updateTable();
+                updateStats();
+                updateCharts();
+            } else {
+                alert('Please fill all fields with valid data.');
+            }
+        }
+
+        // Delete Data
+        function deleteData(index) {
+            data.splice(index, 1);
+            filteredData = [...data];
+            updateTable();
+            updateStats();
+            updateCharts();
+        }
+
+        // Update Table
+        function updateTable() {
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = '';
+            filteredData.forEach((item, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.country}</td>
+                    <td>${item.capital}</td>
+                    <td>${item.population.toLocaleString()}</td>
+                    <td><button onclick="deleteData(${index})">Delete</button></td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Update Statistics
+        function updateStats() {
+            const populations = filteredData.map(item => item.population);
+            const totalCountries = populations.length;
+            const totalPopulation = populations.reduce((sum, val) => sum + val, 0);
+            const meanPopulation = totalCountries ? totalPopulation / totalCountries : 0;
+            const medianPopulation = totalCountries ? math.median(populations) : 0;
+            const stdDevPopulation = totalCountries ? math.std(populations) : 0;
+            const populationRange = totalCountries ? math.max(populations) - math.min(populations) : 0;
+
+            document.getElementById('totalCountries').textContent = `Total Countries: ${totalCountries}`;
+            document.getElementById('totalPopulation').textContent = `Total Population: ${totalPopulation.toLocaleString()}`;
+            document.getElementById('meanPopulation').textContent = `Mean Population: ${meanPopulation.toLocaleString()}`;
+            document.getElementById('medianPopulation').textContent = `Median Population: ${medianPopulation.toLocaleString()}`;
+            document.getElementById('stdDevPopulation').textContent = `Standard Deviation: ${stdDevPopulation.toLocaleString()}`;
+            document.getElementById('populationRange').textContent = `Population Range: ${populationRange.toLocaleString()}`;
+        }
+
+        // Update Charts
+        function updateCharts() {
+            const labels = filteredData.map(item => item.country);
+            const populations = filteredData.map(item => item.population);
+
+            barChart.data.labels = labels;
+            barChart.data.datasets[0].data = populations;
+            barChart.update();
+
+            pieChart.data.labels = labels;
+            pieChart.data.datasets[0].data = populations;
+            pieChart.update();
+        }
+
+        // Apply Population Filters
+        function applyFilters() {
+            const minPopulation = parseInt(document.getElementById('minPopulation').value) || 0;
+            const maxPopulation = parseInt(document.getElementById('maxPopulation').value) || Infinity;
+
+            filteredData = data.filter(item => item.population >= minPopulation && item.population <= maxPopulation);
+            updateTable();
+            updateStats();
+            updateCharts();
+        }
+
+        // Find Outliers using IQR
+        function findOutliers() {
+            const populations = data.map(item => item.population);
+            if (populations.length === 0) return;
+
+            const q1 = math.quantileSeq(populations, 0.25);
+            const q3 = math.quantileSeq(populations, 0.75);
+            const iqr = q3 - q1;
+            const lowerBound = q1 - 1.5 * iqr;
+            const upperBound = q3 + 1.5 * iqr;
+
+            filteredData = data.filter(item => item.population >= lowerBound && item.population <= upperBound);
+            updateTable();
+            updateStats();
+            updateCharts();
+            alert('Outliers removed based on IQR method.');
+        }
+
+        // Sort Data
+        function sortData(order) {
+            filteredData.sort((a, b) => order === 'asc' ? a.population - b.population : b.population - a.population);
+            updateTable();
+            updateCharts();
+        }
+
+        // Initialize
+        initCharts();
+    </script>
+</body>
+</html>
