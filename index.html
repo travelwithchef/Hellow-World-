@@ -4,6 +4,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Country Data Visualizer</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjs/lib/browser/math.js"></script>
   <style>
     body {
       margin: 0;
@@ -13,7 +14,7 @@
     }
     .container {
       padding: 2rem;
-      max-width: 1200px;
+      max-width: 1300px;
       margin: auto;
     }
     h1 {
@@ -21,22 +22,21 @@
       margin-bottom: 2rem;
       color: #ccc;
     }
-    form {
+    form, .filters {
       background: #1a1a1a;
       padding: 1.5rem;
       border-radius: 12px;
       margin-bottom: 2rem;
     }
-    form input {
+    input, select {
       padding: 0.75rem;
-      margin-right: 1rem;
-      margin-bottom: 1rem;
+      margin: 0.5rem;
       background: #333;
       color: #fff;
       border: none;
       border-radius: 6px;
     }
-    form button {
+    button {
       padding: 0.75rem 1.5rem;
       background: #888;
       color: #000;
@@ -61,6 +61,13 @@
       border-radius: 12px;
       padding: 2rem;
     }
+    .stats {
+      margin-top: 2rem;
+      color: #ccc;
+      background: #1a1a1a;
+      padding: 1.5rem;
+      border-radius: 12px;
+    }
   </style>
 </head>
 <body>
@@ -72,14 +79,28 @@
   <button type="submit">Add Country</button>
 </form>
 
+<div class="filters">
+  <h3>Filters & Analysis</h3>
+  <label for="minPop">Min Population:</label>
+  <input type="number" id="minPop" value="0" />
+
+  <label for="maxPop">Max Population:</label>
+  <input type="number" id="maxPop" value="10000000000" />
+
+  <button onclick="applyFilters()">Apply Filter</button>
+</div>
+
 <div class="cards" id="cardContainer"></div>
 <canvas id="populationChart"></canvas>
+
+<div class="stats" id="statistics"></div>
 
   </div>  <script>
     let countries = [];
 
     const cardContainer = document.getElementById('cardContainer');
     const form = document.getElementById('dataForm');
+    const statsDiv = document.getElementById('statistics');
 
     function renderCards(data) {
       cardContainer.innerHTML = '';
@@ -128,6 +149,38 @@
       });
     }
 
+    function updateStatistics(data) {
+      const pops = data.map(d => d.population);
+      const stats = {
+        count: pops.length,
+        sum: math.sum(pops),
+        mean: math.mean(pops),
+        median: math.median(pops),
+        std: math.std(pops),
+        min: math.min(pops),
+        max: math.max(pops)
+      };
+      statsDiv.innerHTML = `
+        <h3>Statistical Summary</h3>
+        <p>Total Countries: ${stats.count}</p>
+        <p>Total Population: ${stats.sum.toLocaleString()}</p>
+        <p>Mean: ${Math.round(stats.mean).toLocaleString()}</p>
+        <p>Median: ${Math.round(stats.median).toLocaleString()}</p>
+        <p>Std. Dev: ${Math.round(stats.std).toLocaleString()}</p>
+        <p>Min: ${stats.min.toLocaleString()}</p>
+        <p>Max: ${stats.max.toLocaleString()}</p>
+      `;
+    }
+
+    function applyFilters() {
+      const min = Number(document.getElementById('minPop').value);
+      const max = Number(document.getElementById('maxPop').value);
+      const filtered = countries.filter(d => d.population >= min && d.population <= max);
+      renderCards(filtered);
+      renderChart(filtered);
+      updateStatistics(filtered);
+    }
+
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       const country = document.getElementById('country').value;
@@ -137,7 +190,7 @@
       countries.push({ country, capital, population: Number(population) });
       renderCards(countries);
       renderChart(countries);
-
+      updateStatistics(countries);
       form.reset();
     });
   </script></body>
