@@ -1,94 +1,60 @@
 <!DOCTYPE html><html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>World Data Analysis Tool</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Country Data Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.1/papaparse.min.js"></script>
   <style>
-    :root {
-      --white: #ffffff;
-      --offwhite: #f4f4f4;
-      --grey: #333333;
-      --black: #000000;
-      --accent: #00bcd4;
-    }body {
-  margin: 0;
-  padding: 0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: var(--offwhite);
-  color: var(--grey);
-}
-
-header {
-  background-color: var(--black);
-  color: var(--white);
-  padding: 20px;
-  text-align: center;
-}
-
-main {
-  padding: 20px;
-  max-width: 1000px;
-  margin: auto;
-}
-
-input, button, select {
-  padding: 10px;
-  margin: 5px;
-  border: 1px solid var(--grey);
-  border-radius: 5px;
-  font-size: 16px;
-}
-
-button {
-  background-color: var(--black);
-  color: var(--white);
-  cursor: pointer;
-}
-
-button:hover {
-  background-color: var(--grey);
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
-  background-color: var(--white);
-}
-
-th, td {
-  padding: 12px;
-  border: 1px solid var(--grey);
-  text-align: center;
-}
-
-th {
-  background-color: var(--black);
-  color: var(--white);
-}
-
-.analysis {
-  margin-top: 30px;
-  background-color: var(--white);
-  padding: 20px;
-  border-radius: 5px;
-}
-
+    body {
+      background-color: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      color: #f0f0f0;
+    }
+    textarea {
+      width: 100%;
+      height: 150px;
+      background: #111;
+      color: #eee;
+      border: 1px solid #333;
+      padding: 10px;
+      margin-bottom: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #555;
+      padding: 8px;
+      text-align: left;
+      color: #ddd;
+    }
+    th {
+      background-color: #222;
+    }
+    .chart-container {
+      margin-top: 40px;
+      background: #1c1c1c;
+      padding: 20px;
+      border-radius: 8px;
+    }
+    .filter {
+      margin-bottom: 10px;
+    }
   </style>
 </head>
 <body>
-  <header>
-    <h1>World Data Analysis Dashboard</h1>
-    <p>Enter country information and explore insights using advanced filters</p>
-  </header>  <main>
-    <section>
-      <h2>Input Data</h2>
-      <input type="text" id="country" placeholder="Country">
-      <input type="text" id="capital" placeholder="Capital City">
-      <input type="number" id="population" placeholder="Population">
-      <button onclick="addData()">Add</button>
-    </section><section>
-  <table id="data-table">
+  <h1>Country Data Dashboard</h1>  <p>Paste your data here (Format: Country,Capital,Population):</p>
+  <textarea id="dataInput"></textarea>
+  <button onclick="loadData()">Load Data</button>
+  <input class="filter" type="text" id="filterInput" placeholder="Search country or capital..." onkeyup="filterTable()" />  <table id="dataTable">
     <thead>
       <tr>
         <th>Country</th>
@@ -96,67 +62,71 @@ th {
         <th>Population</th>
       </tr>
     </thead>
-    <tbody>
-    </tbody>
-  </table>
-</section>
+    <tbody></tbody>
+  </table>  <div class="chart-container">
+    <canvas id="populationChart"></canvas>
+  </div>  <script>
+    let data = [];
 
-<section class="analysis">
-  <h2>Data Analysis</h2>
-  <button onclick="calculateTotalPopulation()">Total Population</button>
-  <button onclick="findMaxPopulation()">Most Populous Country</button>
-  <button onclick="calculateMean()">Mean Population</button>
-  <p id="result"></p>
-</section>
-
-  </main>  <script>
-    const data = [];
-
-    function addData() {
-      const country = document.getElementById('country').value.trim();
-      const capital = document.getElementById('capital').value.trim();
-      const population = parseInt(document.getElementById('population').value.trim());
-
-      if (country && capital && !isNaN(population)) {
-        data.push({ country, capital, population });
-        renderTable();
-        clearInputs();
-      } else {
-        alert("Please fill in all fields correctly.");
-      }
+    function loadData() {
+      const rawText = document.getElementById('dataInput').value;
+      const parsed = Papa.parse(rawText.trim(), { header: false });
+      data = parsed.data.map(row => ({
+        country: row[0],
+        capital: row[1],
+        population: parseInt(row[2].replace(/,/g, '')) || 0
+      })).filter(item => item.country && item.capital);
+      displayTable(data);
+      drawChart(data);
     }
 
-    function renderTable() {
-      const tbody = document.querySelector('#data-table tbody');
+    function displayTable(dataArray) {
+      const tbody = document.querySelector('#dataTable tbody');
       tbody.innerHTML = '';
-      data.forEach(item => {
-        const row = `<tr><td>${item.country}</td><td>${item.capital}</td><td>${item.population.toLocaleString()}</td></tr>`;
-        tbody.innerHTML += row;
+      dataArray.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${row.country}</td><td>${row.capital}</td><td>${row.population.toLocaleString()}</td>`;
+        tbody.appendChild(tr);
       });
     }
 
-    function clearInputs() {
-      document.getElementById('country').value = '';
-      document.getElementById('capital').value = '';
-      document.getElementById('population').value = '';
+    function filterTable() {
+      const keyword = document.getElementById('filterInput').value.toLowerCase();
+      const filtered = data.filter(row =>
+        row.country.toLowerCase().includes(keyword) ||
+        row.capital.toLowerCase().includes(keyword)
+      );
+      displayTable(filtered);
+      drawChart(filtered);
     }
 
-    function calculateTotalPopulation() {
-      const total = data.reduce((sum, item) => sum + item.population, 0);
-      document.getElementById('result').innerText = `Total Population: ${total.toLocaleString()}`;
-    }
-
-    function findMaxPopulation() {
-      if (data.length === 0) return;
-      const max = data.reduce((prev, current) => (prev.population > current.population) ? prev : current);
-      document.getElementById('result').innerText = `Most Populous Country: ${max.country} with ${max.population.toLocaleString()} people.`;
-    }
-
-    function calculateMean() {
-      if (data.length === 0) return;
-      const total = data.reduce((sum, item) => sum + item.population, 0);
-      const mean = total / data.length;
-      document.getElementById('result').innerText = `Mean Population: ${Math.round(mean).toLocaleString()}`;
+    function drawChart(dataArray) {
+      const ctx = document.getElementById('populationChart').getContext('2d');
+      if (window.populationChart) window.populationChart.destroy();
+      window.populationChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: dataArray.map(d => d.country),
+          datasets: [{
+            label: 'Population',
+            data: dataArray.map(d => d.population),
+            backgroundColor: 'rgba(255, 255, 255, 0.5)',
+            borderColor: 'rgba(255, 255, 255, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { labels: { color: '#fff' } },
+            tooltip: { mode: 'index', intersect: false }
+          },
+          scales: {
+            x: { ticks: { color: '#ccc' }, grid: { color: '#444' } },
+            y: { ticks: { color: '#ccc' }, grid: { color: '#444' } }
+          }
+        }
+      });
     }
   </script></body>
 </html>
