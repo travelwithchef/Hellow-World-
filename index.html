@@ -1,85 +1,58 @@
-import React, { useState, useMemo } from "react"; import { Card, CardContent, Input, Button, Select, SelectTrigger, SelectContent, SelectItem, Label, } from "@/components/ui"; import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import React, { useState } from "react"; import { Card, CardContent } from "@/components/ui/card"; import { Input } from "@/components/ui/input"; import { Button } from "@/components/ui/button"; import { Table, TableHead, TableRow, TableCell, TableBody } from "@/components/ui/table"; import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
-const AdvancedDataDashboard = () => { const [data, setData] = useState([]); const [country, setCountry] = useState(""); const [capital, setCapital] = useState(""); const [population, setPopulation] = useState(""); const [filterType, setFilterType] = useState("country"); const [filterText, setFilterText] = useState("");
+export default function DataAnalysisDashboard() { const [data, setData] = useState([]); const [formData, setFormData] = useState({ country: "", capital: "", population: "" });
 
-const addData = () => { if (country && capital && population) { setData([ ...data, { country, capital, population: parseInt(population), }, ]); setCountry(""); setCapital(""); setPopulation(""); } };
+const addData = () => { if (!formData.country || !formData.capital || !formData.population) return; setData([...data, { ...formData, population: parseInt(formData.population) }]); setFormData({ country: "", capital: "", population: "" }); };
 
-const filteredData = useMemo(() => { return data.filter((entry) => entry[filterType].toLowerCase().includes(filterText.toLowerCase()) ); }, [data, filterType, filterText]);
+const movingAverage = (arr, n = 3) => { return arr.map((_, i) => { const slice = arr.slice(Math.max(0, i - n + 1), i + 1); const avg = slice.reduce((sum, item) => sum + item.population, 0) / slice.length; return { ...arr[i], avg }; }); };
 
-const movingAverage = (data, windowSize = 3) => { return data.map((_, i) => { const start = Math.max(0, i - windowSize + 1); const subset = data.slice(start, i + 1); const avgPop = subset.reduce((sum, curr) => sum + curr.population, 0) / subset.length; return { ...data[i], movingAvg: avgPop, }; }); };
+const filteredData = movingAverage(data);
 
-const chartData = movingAverage(filteredData);
+return ( <div className="min-h-screen bg-white text-black p-8 space-y-6"> <h1 className="text-3xl font-bold mb-6">Data & Mathematical Analysis Dashboard</h1> <Card className="bg-gray-100"> <CardContent className="p-4 grid grid-cols-3 gap-4"> <Input placeholder="Country" value={formData.country} onChange={e => setFormData({ ...formData, country: e.target.value })} className="bg-white" /> <Input placeholder="Capital" value={formData.capital} onChange={e => setFormData({ ...formData, capital: e.target.value })} className="bg-white" /> <Input placeholder="Population" type="number" value={formData.population} onChange={e => setFormData({ ...formData, population: e.target.value })} className="bg-white" /> <Button onClick={addData} className="col-span-3 bg-black text-white hover:bg-gray-800">Add Entry</Button> </CardContent> </Card>
 
-return ( <div className="min-h-screen bg-white text-black p-4 space-y-4"> <Card className="bg-off-white text-black"> <CardContent className="space-y-2"> <h1 className="text-xl font-semibold">Manual Data Entry</h1> <div className="grid grid-cols-1 md:grid-cols-4 gap-2"> <Input placeholder="Country" value={country} onChange={(e) => setCountry(e.target.value)} className="bg-white text-black" /> <Input placeholder="Capital" value={capital} onChange={(e) => setCapital(e.target.value)} className="bg-white text-black" /> <Input placeholder="Population" type="number" value={population} onChange={(e) => setPopulation(e.target.value)} className="bg-white text-black" /> <Button onClick={addData}>Add Entry</Button> </div> </CardContent> </Card>
-
-<Card className="bg-grey-100 text-black">
-    <CardContent className="space-y-2">
-      <h2 className="text-lg font-semibold">Filters</h2>
-      <div className="flex flex-col md:flex-row gap-2">
-        <Select value={filterType} onValueChange={setFilterType}>
-          <SelectTrigger className="bg-white text-black">
-            <span>{filterType}</span>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="country">Country</SelectItem>
-            <SelectItem value="capital">Capital</SelectItem>
-          </SelectContent>
-        </Select>
-        <Input
-          placeholder="Filter Text"
-          value={filterText}
-          onChange={(e) => setFilterText(e.target.value)}
-          className="bg-white text-black"
-        />
-      </div>
-    </CardContent>
-  </Card>
-
-  <Card className="bg-white text-black">
-    <CardContent>
-      <h2 className="text-lg font-semibold mb-2">Filtered Data Table</h2>
-      <table className="table-auto w-full border">
-        <thead className="bg-grey-300">
-          <tr>
-            <th className="border p-2">Country</th>
-            <th className="border p-2">Capital</th>
-            <th className="border p-2">Population</th>
-            <th className="border p-2">Moving Avg (3)</th>
-          </tr>
-        </thead>
-        <tbody>
-          {chartData.map((item, idx) => (
-            <tr key={idx} className="text-center">
-              <td className="border p-2">{item.country}</td>
-              <td className="border p-2">{item.capital}</td>
-              <td className="border p-2">{item.population}</td>
-              <td className="border p-2">{item.movingAvg.toFixed(2)}</td>
-            </tr>
+<Card className="bg-off-white">
+    <CardContent className="p-4">
+      <h2 className="text-xl font-semibold mb-4">Raw Data Table</h2>
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell>Country</TableCell>
+            <TableCell>Capital</TableCell>
+            <TableCell>Population</TableCell>
+            <TableCell>Moving Avg. (3)</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {filteredData.map((item, idx) => (
+            <TableRow key={idx}>
+              <TableCell>{item.country}</TableCell>
+              <TableCell>{item.capital}</TableCell>
+              <TableCell>{item.population.toLocaleString()}</TableCell>
+              <TableCell>{item.avg.toFixed(2)}</TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </CardContent>
   </Card>
 
-  <Card className="bg-black text-white">
-    <CardContent>
-      <h2 className="text-lg font-semibold mb-2">Population Visualization</h2>
+  <Card className="bg-gray-200">
+    <CardContent className="p-4">
+      <h2 className="text-xl font-semibold mb-4">Population Trend Visualization</h2>
       <ResponsiveContainer width="100%" height={300}>
-        <LineChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#ccc" />
-          <XAxis dataKey="country" stroke="#fff" />
-          <YAxis stroke="#fff" />
+        <LineChart data={filteredData}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="country" />
+          <YAxis />
           <Tooltip />
-          <Line type="monotone" dataKey="population" stroke="#8884d8" />
-          <Line type="monotone" dataKey="movingAvg" stroke="#82ca9d" />
+          <Line type="monotone" dataKey="population" stroke="#000000" strokeWidth={2} />
+          <Line type="monotone" dataKey="avg" stroke="#666666" strokeDasharray="5 5" />
         </LineChart>
       </ResponsiveContainer>
     </CardContent>
   </Card>
 </div>
 
-); };
+); }
 
-export default AdvancedDataDashboard;
-
-            
+              
