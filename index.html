@@ -1,60 +1,124 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Street View by Coordinates</title>
-    <style>
-      html, body {
-        height: 100%;
-        margin: 0;
-        padding: 0;
-      }
-      #controls {
-        position: absolute;
-        top: 10px;
-        left: 10px;
-        background-color: white;
-        padding: 10px;
-        z-index: 1;
-        border-radius: 10px;
-        box-shadow: 0 0 10px rgba(0,0,0,0.2);
-      }
-      #map {
-        height: 100%;
-      }
-    </style>
-  </head>
-  <body>
-    <div id="controls">
-      <label>Latitude: <input type="text" id="lat" value="48.8584"></label><br>
-      <label>Longitude: <input type="text" id="lng" value="2.2945"></label><br>
-      <button onclick="updateStreetView()">Show Street View</button>
-    </div>
-    <div id="map"></div>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Street View Data Analysis</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 40px;
+      text-align: center;
+    }
+    input, button {
+      padding: 10px;
+      margin: 10px;
+      font-size: 16px;
+    }
+    #link {
+      margin-top: 20px;
+      font-size: 18px;
+      color: blue;
+      text-decoration: underline;
+      display: none;
+    }
+    table {
+      width: 80%;
+      margin: 20px auto;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: center;
+    }
+    canvas {
+      margin-top: 30px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Street View Data Analysis</h2>
+  <p>Enter coordinates to analyze Street View availability and data.</p>
 
-    <script>
-      let panorama;
+  <!-- User input for latitude and longitude -->
+  <input type="text" id="lat" placeholder="Latitude" value="48.8584">
+  <input type="text" id="lng" placeholder="Longitude" value="2.2945">
+  <br>
+  <button onclick="openStreetView()">Open Street View</button>
 
-      function initMap() {
-        const position = { lat: 48.8584, lng: 2.2945 }; // Eiffel Tower
+  <!-- Street View link -->
+  <a id="link" href="#" target="_blank">Open Street View in new tab</a>
 
-        panorama = new google.maps.StreetViewPanorama(
-          document.getElementById("map"),
-          {
-            position: position,
-            pov: { heading: 165, pitch: 0 },
-            zoom: 1,
+  <!-- Display analysis summary -->
+  <h3>Analysis Summary</h3>
+  <div id="summary"></div>
+
+  <!-- Distribution Plot (Lat vs Long) -->
+  <h3>Coordinates Distribution (Lat vs Long)</h3>
+  <canvas id="distributionChart" width="400" height="200"></canvas>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // Function to open Street View in a new tab
+    function openStreetView() {
+      const lat = document.getElementById('lat').value;
+      const lng = document.getElementById('lng').value;
+      const url = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lng}`;
+
+      // Display the link to the user
+      document.getElementById('link').href = url;
+      document.getElementById('link').style.display = 'inline-block';
+      document.getElementById('link').innerText = `View Street at ${lat}, ${lng}`;
+      window.open(url, '_blank');
+
+      // Analyze and display data
+      analyzeCoordinates(lat, lng);
+    }
+
+    // Function to analyze coordinates and display results
+    function analyzeCoordinates(lat, lng) {
+      // Check if the coordinates are valid
+      const isValid = isValidCoordinates(lat, lng);
+
+      // Display summary based on validity
+      document.getElementById('summary').innerHTML = `
+        <p>Latitude: ${lat}</p>
+        <p>Longitude: ${lng}</p>
+        <p>Status: ${isValid ? "Valid" : "Invalid"}</p>
+      `;
+
+      // Plot the distribution of the coordinates (Latitude vs Longitude)
+      plotDistributionChart(lat, lng);
+    }
+
+    // Basic validation for coordinates
+    function isValidCoordinates(lat, lng) {
+      return lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+    }
+
+    // Function to plot distribution of coordinates (Lat vs Long)
+    function plotDistributionChart(lat, lng) {
+      const ctx = document.getElementById('distributionChart').getContext('2d');
+      const chart = new Chart(ctx, {
+        type: 'scatter',
+        data: {
+          datasets: [{
+            label: 'Coordinates Distribution',
+            data: [{x: parseFloat(lat), y: parseFloat(lng)}],
+            backgroundColor: 'rgba(0, 123, 255, 0.6)',
+            borderColor: 'rgba(0, 123, 255, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          scales: {
+            x: {title: {display: true, text: 'Latitude'}},
+            y: {title: {display: true, text: 'Longitude'}}
           }
-        );
-      }
-
-      function updateStreetView() {
-        const lat = parseFloat(document.getElementById("lat").value);
-        const lng = parseFloat(document.getElementById("lng").value);
-        panorama.setPosition({ lat, lng });
-      }
-    </script>
-
-    <!-- Replace YOUR_API_KEY with your real Google Maps API key -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap" async defer></script>
-  </body>
+        }
+      });
+    }
+  </script>
+</body>
 </html>
