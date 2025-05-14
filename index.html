@@ -1,124 +1,162 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Street View Data Analysis</title>
+  <title>World Data Analysis Tool</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 40px;
-      text-align: center;
-    }
-    input, button {
-      padding: 10px;
-      margin: 10px;
-      font-size: 16px;
-    }
-    #link {
-      margin-top: 20px;
-      font-size: 18px;
-      color: blue;
-      text-decoration: underline;
-      display: none;
-    }
-    table {
-      width: 80%;
-      margin: 20px auto;
-      border-collapse: collapse;
-    }
-    th, td {
-      padding: 10px;
-      border: 1px solid #ddd;
-      text-align: center;
-    }
-    canvas {
-      margin-top: 30px;
-    }
+    :root {
+      --white: #ffffff;
+      --offwhite: #f4f4f4;
+      --grey: #333333;
+      --black: #000000;
+      --accent: #00bcd4;
+    }body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--offwhite);
+  color: var(--grey);
+}
+
+header {
+  background-color: var(--black);
+  color: var(--white);
+  padding: 20px;
+  text-align: center;
+}
+
+main {
+  padding: 20px;
+  max-width: 1000px;
+  margin: auto;
+}
+
+input, button, select {
+  padding: 10px;
+  margin: 5px;
+  border: 1px solid var(--grey);
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+button {
+  background-color: var(--black);
+  color: var(--white);
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: var(--grey);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background-color: var(--white);
+}
+
+th, td {
+  padding: 12px;
+  border: 1px solid var(--grey);
+  text-align: center;
+}
+
+th {
+  background-color: var(--black);
+  color: var(--white);
+}
+
+.analysis {
+  margin-top: 30px;
+  background-color: var(--white);
+  padding: 20px;
+  border-radius: 5px;
+}
+
   </style>
 </head>
 <body>
-  <h2>Street View Data Analysis</h2>
-  <p>Enter coordinates to analyze Street View availability and data.</p>
+  <header>
+    <h1>World Data Analysis Dashboard</h1>
+    <p>Enter country information and explore insights using advanced filters</p>
+  </header>  <main>
+    <section>
+      <h2>Input Data</h2>
+      <input type="text" id="country" placeholder="Country">
+      <input type="text" id="capital" placeholder="Capital City">
+      <input type="number" id="population" placeholder="Population">
+      <button onclick="addData()">Add</button>
+    </section><section>
+  <table id="data-table">
+    <thead>
+      <tr>
+        <th>Country</th>
+        <th>Capital</th>
+        <th>Population</th>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+</section>
 
-  <!-- User input for latitude and longitude -->
-  <input type="text" id="lat" placeholder="Latitude" value="48.8584">
-  <input type="text" id="lng" placeholder="Longitude" value="2.2945">
-  <br>
-  <button onclick="openStreetView()">Open Street View</button>
+<section class="analysis">
+  <h2>Data Analysis</h2>
+  <button onclick="calculateTotalPopulation()">Total Population</button>
+  <button onclick="findMaxPopulation()">Most Populous Country</button>
+  <button onclick="calculateMean()">Mean Population</button>
+  <p id="result"></p>
+</section>
 
-  <!-- Street View link -->
-  <a id="link" href="#" target="_blank">Open Street View in new tab</a>
+  </main>  <script>
+    const data = [];
 
-  <!-- Display analysis summary -->
-  <h3>Analysis Summary</h3>
-  <div id="summary"></div>
+    function addData() {
+      const country = document.getElementById('country').value.trim();
+      const capital = document.getElementById('capital').value.trim();
+      const population = parseInt(document.getElementById('population').value.trim());
 
-  <!-- Distribution Plot (Lat vs Long) -->
-  <h3>Coordinates Distribution (Lat vs Long)</h3>
-  <canvas id="distributionChart" width="400" height="200"></canvas>
-
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script>
-    // Function to open Street View in a new tab
-    function openStreetView() {
-      const lat = document.getElementById('lat').value;
-      const lng = document.getElementById('lng').value;
-      const url = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lng}`;
-
-      // Display the link to the user
-      document.getElementById('link').href = url;
-      document.getElementById('link').style.display = 'inline-block';
-      document.getElementById('link').innerText = `View Street at ${lat}, ${lng}`;
-      window.open(url, '_blank');
-
-      // Analyze and display data
-      analyzeCoordinates(lat, lng);
+      if (country && capital && !isNaN(population)) {
+        data.push({ country, capital, population });
+        renderTable();
+        clearInputs();
+      } else {
+        alert("Please fill in all fields correctly.");
+      }
     }
 
-    // Function to analyze coordinates and display results
-    function analyzeCoordinates(lat, lng) {
-      // Check if the coordinates are valid
-      const isValid = isValidCoordinates(lat, lng);
-
-      // Display summary based on validity
-      document.getElementById('summary').innerHTML = `
-        <p>Latitude: ${lat}</p>
-        <p>Longitude: ${lng}</p>
-        <p>Status: ${isValid ? "Valid" : "Invalid"}</p>
-      `;
-
-      // Plot the distribution of the coordinates (Latitude vs Longitude)
-      plotDistributionChart(lat, lng);
-    }
-
-    // Basic validation for coordinates
-    function isValidCoordinates(lat, lng) {
-      return lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
-    }
-
-    // Function to plot distribution of coordinates (Lat vs Long)
-    function plotDistributionChart(lat, lng) {
-      const ctx = document.getElementById('distributionChart').getContext('2d');
-      const chart = new Chart(ctx, {
-        type: 'scatter',
-        data: {
-          datasets: [{
-            label: 'Coordinates Distribution',
-            data: [{x: parseFloat(lat), y: parseFloat(lng)}],
-            backgroundColor: 'rgba(0, 123, 255, 0.6)',
-            borderColor: 'rgba(0, 123, 255, 1)',
-            borderWidth: 1
-          }]
-        },
-        options: {
-          scales: {
-            x: {title: {display: true, text: 'Latitude'}},
-            y: {title: {display: true, text: 'Longitude'}}
-          }
-        }
+    function renderTable() {
+      const tbody = document.querySelector('#data-table tbody');
+      tbody.innerHTML = '';
+      data.forEach(item => {
+        const row = `<tr><td>${item.country}</td><td>${item.capital}</td><td>${item.population.toLocaleString()}</td></tr>`;
+        tbody.innerHTML += row;
       });
     }
-  </script>
-</body>
+
+    function clearInputs() {
+      document.getElementById('country').value = '';
+      document.getElementById('capital').value = '';
+      document.getElementById('population').value = '';
+    }
+
+    function calculateTotalPopulation() {
+      const total = data.reduce((sum, item) => sum + item.population, 0);
+      document.getElementById('result').innerText = `Total Population: ${total.toLocaleString()}`;
+    }
+
+    function findMaxPopulation() {
+      if (data.length === 0) return;
+      const max = data.reduce((prev, current) => (prev.population > current.population) ? prev : current);
+      document.getElementById('result').innerText = `Most Populous Country: ${max.country} with ${max.population.toLocaleString()} people.`;
+    }
+
+    function calculateMean() {
+      if (data.length === 0) return;
+      const total = data.reduce((sum, item) => sum + item.population, 0);
+      const mean = total / data.length;
+      document.getElementById('result').innerText = `Mean Population: ${Math.round(mean).toLocaleString()}`;
+    }
+  </script></body>
 </html>
