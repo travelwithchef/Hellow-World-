@@ -1,111 +1,118 @@
-<!DOCTYPE html><html lang="en"><head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Country & Capital List</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f7f9fc;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }header {
-  background-color: #2a4365;
-  color: white;
-  padding: 20px;
-  width: 100%;
-  text-align: center;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
+import React, { useState } from "react"; import { Input } from "@/components/ui/input"; import { Button } from "@/components/ui/button"; import { Card, CardContent } from "@/components/ui/card"; import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts"; import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"; import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"; import { ScrollArea } from "@/components/ui/scroll-area"; import { MathComponent } from "mathjax-react";
 
-main {
-  max-width: 600px;
-  width: 100%;
-  padding: 20px;
-}
+const defaultCountries = [ { country: "India", capital: "New Delhi", population: 1393409038, region: "Asia" }, { country: "USA", capital: "Washington, D.C.", population: 331893745, region: "North America" }, { country: "France", capital: "Paris", population: 67391582, region: "Europe" }, ];
 
-.input-group {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-}
+export default function CountryDataVisualizer() { const [countries, setCountries] = useState(defaultCountries); const [filterRegion, setFilterRegion] = useState(""); const [newCountry, setNewCountry] = useState({ country: "", capital: "", population: "", region: "" });
 
-.input-group input {
-  flex: 1;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
+const filteredData = filterRegion ? countries.filter((item) => item.region === filterRegion) : countries;
 
-.input-group button {
-  background-color: #2b6cb0;
-  color: white;
-  padding: 10px 15px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
+const handleAddCountry = () => { if (!newCountry.country || !newCountry.capital || !newCountry.population || !newCountry.region) return; const updated = [ ...countries, { ...newCountry, population: parseInt(newCountry.population) }, ]; setCountries(updated); setNewCountry({ country: "", capital: "", population: "", region: "" }); };
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: white;
-}
+const totalPopulation = filteredData.reduce((acc, curr) => acc + curr.population, 0); const meanPopulation = (totalPopulation / filteredData.length).toFixed(2);
 
-th, td {
-  padding: 12px;
-  border-bottom: 1px solid #ddd;
-  text-align: left;
-}
+return ( <div className="min-h-screen bg-black text-offwhite p-4 font-sans"> <h1 className="text-3xl font-bold mb-4">Country Statistics Dashboard</h1>
 
-th {
-  background-color: #e2e8f0;
-}
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+    <Card className="bg-gray-800 text-offwhite">
+      <CardContent className="p-4 space-y-2">
+        <h2 className="text-xl font-semibold">Add a Country</h2>
+        <Input
+          placeholder="Country"
+          value={newCountry.country}
+          onChange={(e) => setNewCountry({ ...newCountry, country: e.target.value })}
+        />
+        <Input
+          placeholder="Capital"
+          value={newCountry.capital}
+          onChange={(e) => setNewCountry({ ...newCountry, capital: e.target.value })}
+        />
+        <Input
+          placeholder="Population"
+          type="number"
+          value={newCountry.population}
+          onChange={(e) => setNewCountry({ ...newCountry, population: e.target.value })}
+        />
+        <Input
+          placeholder="Region"
+          value={newCountry.region}
+          onChange={(e) => setNewCountry({ ...newCountry, region: e.target.value })}
+        />
+        <Button className="bg-offwhite text-black" onClick={handleAddCountry}>Add Country</Button>
+      </CardContent>
+    </Card>
 
-  </style>
-</head><body>
-  <header>
-    <h1>Country & Capital Directory</h1>
-  </header>
-  <main>
-    <div class="input-group">
-      <input type="text" id="countryInput" placeholder="Enter country name">
-      <input type="text" id="capitalInput" placeholder="Enter capital name">
-      <button onclick="addCountry()">Add</button>
-    </div>
-    <table>
-      <thead>
-        <tr>
-          <th>Country</th>
-          <th>Capital</th>
-        </tr>
-      </thead>
-      <tbody id="countryTableBody">
-        <!-- Entries will appear here -->
-      </tbody>
-    </table>
-  </main>  <script>
-    function addCountry() {
-      const country = document.getElementById('countryInput').value.trim();
-      const capital = document.getElementById('capitalInput').value.trim();
+    <Card className="bg-gray-800 text-offwhite">
+      <CardContent className="p-4">
+        <h2 className="text-xl font-semibold mb-2">Filter by Region</h2>
+        <Select onValueChange={setFilterRegion}>
+          <SelectTrigger className="bg-black text-offwhite border-gray-600">
+            <SelectValue placeholder="Choose Region" />
+          </SelectTrigger>
+          <SelectContent className="bg-black text-offwhite">
+            <SelectItem value="">All</SelectItem>
+            {[...new Set(countries.map((c) => c.region))].map((region) => (
+              <SelectItem key={region} value={region}>{region}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </CardContent>
+    </Card>
+  </div>
 
-      if (country && capital) {
-        const table = document.getElementById('countryTableBody');
-        const row = document.createElement('tr');
+  <Card className="bg-gray-900 text-offwhite mb-6">
+    <CardContent className="p-4">
+      <h2 className="text-xl font-semibold mb-4">Country Data Table</h2>
+      <ScrollArea className="max-h-64">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Country</TableHead>
+              <TableHead>Capital</TableHead>
+              <TableHead>Population</TableHead>
+              <TableHead>Region</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredData.map((item, index) => (
+              <TableRow key={index}>
+                <TableCell>{item.country}</TableCell>
+                <TableCell>{item.capital}</TableCell>
+                <TableCell>{item.population.toLocaleString()}</TableCell>
+                <TableCell>{item.region}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </ScrollArea>
+    </CardContent>
+  </Card>
 
-        const countryCell = document.createElement('td');
-        countryCell.textContent = country;
-        const capitalCell = document.createElement('td');
-        capitalCell.textContent = capital;
+  <Card className="bg-gray-900 text-offwhite mb-6">
+    <CardContent className="p-4">
+      <h2 className="text-xl font-semibold mb-4">Population Chart</h2>
+      <ResponsiveContainer width="100%" height={300}>
+        <BarChart data={filteredData}>
+          <XAxis dataKey="country" stroke="#ccc" />
+          <YAxis stroke="#ccc" />
+          <Tooltip />
+          <Legend />
+          <Bar dataKey="population" fill="#8884d8" />
+        </BarChart>
+      </ResponsiveContainer>
+    </CardContent>
+  </Card>
 
-        row.appendChild(countryCell);
-        row.appendChild(capitalCell);
-        table.appendChild(row);
+  <Card className="bg-gray-900 text-offwhite">
+    <CardContent className="p-4">
+      <h2 className="text-xl font-semibold mb-2">Mathematical Analysis</h2>
+      <p>Total Countries: {filteredData.length}</p>
+      <p>Total Population: {totalPopulation.toLocaleString()}</p>
+      <p>Mean Population: {meanPopulation.toLocaleString()}</p>
+      <MathComponent tex={`\\text{Population Mean} = \\frac{${totalPopulation}}{${filteredData.length}} = ${meanPopulation}`} />
+    </CardContent>
+  </Card>
+</div>
 
-        document.getElementById('countryInput').value = '';
-        document.getElementById('capitalInput').value = '';
-      }
-    }
-  </script></body></html>
+); }
+
+            
