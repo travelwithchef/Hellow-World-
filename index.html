@@ -3,9 +3,6 @@
   <head>
     <title>Street View by Coordinates</title>
     <style>
-      #map {
-        height: 100%;
-      }
       html, body {
         height: 100%;
         margin: 0;
@@ -15,16 +12,21 @@
         position: absolute;
         top: 10px;
         left: 10px;
-        background: white;
+        background-color: white;
         padding: 10px;
         z-index: 1;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      }
+      #map {
+        height: 100%;
       }
     </style>
   </head>
   <body>
     <div id="controls">
-      <label>Latitude: <input type="text" id="lat" value="40.6892"></label>
-      <label>Longitude: <input type="text" id="lng" value="-74.0445"></label>
+      <label>Latitude: <input type="text" id="lat" value="48.8584"></label><br>
+      <label>Longitude: <input type="text" id="lng" value="2.2945"></label><br>
       <button onclick="updateStreetView()">Show Street View</button>
     </div>
     <div id="map"></div>
@@ -33,10 +35,12 @@
       let panorama;
 
       function initMap() {
+        const position = { lat: 48.8584, lng: 2.2945 }; // Eiffel Tower
+
         panorama = new google.maps.StreetViewPanorama(
           document.getElementById("map"),
           {
-            position: { lat: 40.6892, lng: -74.0445 },
+            position: position,
             pov: { heading: 165, pitch: 0 },
             zoom: 1,
           }
@@ -50,6 +54,7 @@
       }
     </script>
 
+    <!-- Replace YOUR_API_KEY with your real Google Maps API key -->
     <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap" async defer></script>
   </body>
 </html>
