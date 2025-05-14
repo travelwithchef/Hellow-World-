@@ -1,58 +1,24 @@
-import React, { useState } from "react"; import { Card, CardContent } from "@/components/ui/card"; import { Input } from "@/components/ui/input"; import { Button } from "@/components/ui/button"; import { Table, TableHead, TableRow, TableCell, TableBody } from "@/components/ui/table"; import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+// File: App.jsx import React, { useState } from 'react'; import { Input } from '@/components/ui/input'; import { Card, CardContent } from '@/components/ui/card'; import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'; import { motion } from 'framer-motion';
 
-export default function DataAnalysisDashboard() { const [data, setData] = useState([]); const [formData, setFormData] = useState({ country: "", capital: "", population: "" });
+const sampleData = [ { country: 'India', capital: 'New Delhi', population: 1393409038 }, { country: 'USA', capital: 'Washington D.C.', population: 331893745 }, { country: 'Japan', capital: 'Tokyo', population: 125960000 }, { country: 'Germany', capital: 'Berlin', population: 83240525 }, { country: 'Brazil', capital: 'Brasília', population: 213993437 }, ];
 
-const addData = () => { if (!formData.country || !formData.capital || !formData.population) return; setData([...data, { ...formData, population: parseInt(formData.population) }]); setFormData({ country: "", capital: "", population: "" }); };
+export default function App() { const [search, setSearch] = useState(''); const filteredData = sampleData.filter((item) => item.country.toLowerCase().includes(search.toLowerCase()) );
 
-const movingAverage = (arr, n = 3) => { return arr.map((_, i) => { const slice = arr.slice(Math.max(0, i - n + 1), i + 1); const avg = slice.reduce((sum, item) => sum + item.population, 0) / slice.length; return { ...arr[i], avg }; }); };
+return ( <div className="min-h-screen bg-black text-offwhite p-6"> <h1 className="text-4xl font-bold mb-6 text-center text-gray-200">Country Data Visualizer</h1> <Input placeholder="Search for a country..." className="mb-6 w-full max-w-md mx-auto bg-gray-800 text-white placeholder-gray-400" value={search} onChange={(e) => setSearch(e.target.value)} /> <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"> {filteredData.map((item, index) => ( <motion.div key={index} initial={{ opacity: 0 }} animate={{ opacity: 1 }}> <Card className="bg-gray-900 text-offwhite shadow-xl"> <CardContent className="p-4"> <h2 className="text-xl font-semibold text-white">{item.country}</h2> <p className="text-gray-300">Capital: {item.capital}</p> <p className="text-gray-400">Population: {item.population.toLocaleString()}</p> </CardContent> </Card> </motion.div> ))} </div>
 
-const filteredData = movingAverage(data);
-
-return ( <div className="min-h-screen bg-white text-black p-8 space-y-6"> <h1 className="text-3xl font-bold mb-6">Data & Mathematical Analysis Dashboard</h1> <Card className="bg-gray-100"> <CardContent className="p-4 grid grid-cols-3 gap-4"> <Input placeholder="Country" value={formData.country} onChange={e => setFormData({ ...formData, country: e.target.value })} className="bg-white" /> <Input placeholder="Capital" value={formData.capital} onChange={e => setFormData({ ...formData, capital: e.target.value })} className="bg-white" /> <Input placeholder="Population" type="number" value={formData.population} onChange={e => setFormData({ ...formData, population: e.target.value })} className="bg-white" /> <Button onClick={addData} className="col-span-3 bg-black text-white hover:bg-gray-800">Add Entry</Button> </CardContent> </Card>
-
-<Card className="bg-off-white">
-    <CardContent className="p-4">
-      <h2 className="text-xl font-semibold mb-4">Raw Data Table</h2>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>Country</TableCell>
-            <TableCell>Capital</TableCell>
-            <TableCell>Population</TableCell>
-            <TableCell>Moving Avg. (3)</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {filteredData.map((item, idx) => (
-            <TableRow key={idx}>
-              <TableCell>{item.country}</TableCell>
-              <TableCell>{item.capital}</TableCell>
-              <TableCell>{item.population.toLocaleString()}</TableCell>
-              <TableCell>{item.avg.toFixed(2)}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </CardContent>
-  </Card>
-
-  <Card className="bg-gray-200">
-    <CardContent className="p-4">
-      <h2 className="text-xl font-semibold mb-4">Population Trend Visualization</h2>
-      <ResponsiveContainer width="100%" height={300}>
-        <LineChart data={filteredData}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="country" />
-          <YAxis />
-          <Tooltip />
-          <Line type="monotone" dataKey="population" stroke="#000000" strokeWidth={2} />
-          <Line type="monotone" dataKey="avg" stroke="#666666" strokeDasharray="5 5" />
-        </LineChart>
-      </ResponsiveContainer>
-    </CardContent>
-  </Card>
+<div className="mt-12">
+    <h2 className="text-2xl font-bold text-gray-200 text-center mb-4">Population Comparison</h2>
+    <ResponsiveContainer width="100%" height={300}>
+      <BarChart data={filteredData}>
+        <XAxis dataKey="country" stroke="#ccc" />
+        <YAxis stroke="#ccc" />
+        <Tooltip wrapperClassName="bg-black text-offwhite" />
+        <Bar dataKey="population" fill="#888888" />
+      </BarChart>
+    </ResponsiveContainer>
+  </div>
 </div>
 
 ); }
 
-              
+            
