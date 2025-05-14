@@ -1,197 +1,212 @@
-<!DOCTYPE html><html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Country Data Visualizer</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjs/lib/browser/math.js"></script>
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #000;
-      color: #f8f8f8;
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World Data Explorer</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body {
+            background-color: #0e0e0e;
+            color: #f0f0f0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 2rem;
+        }h1 {
+        color: #ccc;
+        text-align: center;
     }
-    .container {
-      padding: 2rem;
-      max-width: 1300px;
-      margin: auto;
-    }
-    h1 {
-      text-align: center;
-      margin-bottom: 2rem;
-      color: #ccc;
-    }
-    form, .filters {
-      background: #1a1a1a;
-      padding: 1.5rem;
-      border-radius: 12px;
-      margin-bottom: 2rem;
-    }
-    input, select {
-      padding: 0.75rem;
-      margin: 0.5rem;
-      background: #333;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-    }
-    button {
-      padding: 0.75rem 1.5rem;
-      background: #888;
-      color: #000;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 1.5rem;
-    }
-    .card {
-      background: #1a1a1a;
-      padding: 1.5rem;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(255,255,255,0.05);
-    }
-    canvas {
-      margin-top: 3rem;
-      background-color: #1a1a1a;
-      border-radius: 12px;
-      padding: 2rem;
-    }
-    .stats {
-      margin-top: 2rem;
-      color: #ccc;
-      background: #1a1a1a;
-      padding: 1.5rem;
-      border-radius: 12px;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>Country Data Visualizer</h1><form id="dataForm">
-  <input type="text" id="country" placeholder="Country" required />
-  <input type="text" id="capital" placeholder="Capital" required />
-  <input type="number" id="population" placeholder="Population" required />
-  <button type="submit">Add Country</button>
-</form>
 
-<div class="filters">
-  <h3>Filters & Analysis</h3>
-  <label for="minPop">Min Population:</label>
-  <input type="number" id="minPop" value="0" />
+    .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        justify-content: center;
+        margin-bottom: 2rem;
+    }
 
-  <label for="maxPop">Max Population:</label>
-  <input type="number" id="maxPop" value="10000000000" />
+    .controls input,
+    .controls select,
+    .controls button {
+        background: #1e1e1e;
+        color: #f0f0f0;
+        border: 1px solid #444;
+        padding: 0.5rem 1rem;
+        border-radius: 5px;
+    }
 
-  <button onclick="applyFilters()">Apply Filter</button>
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 2rem;
+    }
+
+    th,
+    td {
+        padding: 0.5rem;
+        border: 1px solid #444;
+        text-align: left;
+    }
+
+    th {
+        background-color: #2c2c2c;
+    }
+
+    .chart-container {
+        margin-top: 3rem;
+    }
+
+    #map {
+        width: 100%;
+        height: 500px;
+    }
+</style>
+
+</head><body>
+    <h1>World Data Explorer</h1><div class="controls">
+    <input type="text" id="search" placeholder="Search country/capital...">
+    <input type="number" id="minPop" placeholder="Min population">
+    <input type="number" id="maxPop" placeholder="Max population">
+    <select id="sort">
+        <option value="">Sort By</option>
+        <option value="name">Name A-Z</option>
+        <option value="name-desc">Name Z-A</option>
+        <option value="population">Population Low-High</option>
+        <option value="population-desc">Population High-Low</option>
+    </select>
+    <button onclick="exportData()">Export CSV</button>
 </div>
 
-<div class="cards" id="cardContainer"></div>
-<canvas id="populationChart"></canvas>
+<table id="dataTable">
+    <thead>
+        <tr>
+            <th>Country</th>
+            <th>Capital</th>
+            <th>Population</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
 
-<div class="stats" id="statistics"></div>
+<div class="chart-container">
+    <canvas id="populationChart"></canvas>
+</div>
 
-  </div>  <script>
-    let countries = [];
+<div id="map"></div>
 
-    const cardContainer = document.getElementById('cardContainer');
-    const form = document.getElementById('dataForm');
-    const statsDiv = document.getElementById('statistics');
+<script>
+    const data = [
+        { country: 'India', capital: 'New Delhi', population: 1393409038, lat: 28.6139, lon: 77.2090 },
+        { country: 'USA', capital: 'Washington, D.C.', population: 331002651, lat: 38.9072, lon: -77.0369 },
+        { country: 'Brazil', capital: 'Brasília', population: 212559417, lat: -15.8267, lon: -47.9218 },
+        { country: 'Russia', capital: 'Moscow', population: 145912025, lat: 55.7558, lon: 37.6173 },
+        { country: 'Japan', capital: 'Tokyo', population: 126476461, lat: 35.6762, lon: 139.6503 }
+    ];
 
-    function renderCards(data) {
-      cardContainer.innerHTML = '';
-      data.forEach(({ country, capital, population }) => {
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.innerHTML = `
-          <h2>${country}</h2>
-          <p><strong>Capital:</strong> ${capital}</p>
-          <p><strong>Population:</strong> ${Number(population).toLocaleString()}</p>
-        `;
-        cardContainer.appendChild(card);
-      });
+    function renderTable(filtered = data) {
+        const tbody = document.querySelector("#dataTable tbody");
+        tbody.innerHTML = "";
+        filtered.forEach(row => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `<td>${row.country}</td><td>${row.capital}</td><td>${row.population.toLocaleString()}</td>`;
+            tbody.appendChild(tr);
+        });
+        renderChart(filtered);
+        renderMap(filtered);
     }
 
-    function renderChart(data) {
-      const ctx = document.getElementById('populationChart').getContext('2d');
-      if (window.bar) window.bar.destroy();
-      window.bar = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: data.map(d => d.country),
-          datasets: [{
-            label: 'Population',
-            data: data.map(d => d.population),
-            backgroundColor: '#888',
-          }]
-        },
-        options: {
-          plugins: {
-            legend: {
-              labels: { color: '#ccc' }
-            }
-          },
-          scales: {
-            x: {
-              ticks: { color: '#ccc' },
-              grid: { color: '#333' }
+    function filterData() {
+        const search = document.getElementById('search').value.toLowerCase();
+        const minPop = parseInt(document.getElementById('minPop').value) || 0;
+        const maxPop = parseInt(document.getElementById('maxPop').value) || Infinity;
+        const sort = document.getElementById('sort').value;
+
+        let filtered = data.filter(d =>
+            (d.country.toLowerCase().includes(search) || d.capital.toLowerCase().includes(search)) &&
+            d.population >= minPop &&
+            d.population <= maxPop
+        );
+
+        if (sort === 'name') filtered.sort((a, b) => a.country.localeCompare(b.country));
+        if (sort === 'name-desc') filtered.sort((a, b) => b.country.localeCompare(a.country));
+        if (sort === 'population') filtered.sort((a, b) => a.population - b.population);
+        if (sort === 'population-desc') filtered.sort((a, b) => b.population - a.population);
+
+        renderTable(filtered);
+    }
+
+    function renderChart(dataSet) {
+        const ctx = document.getElementById('populationChart').getContext('2d');
+        if (window.popChart) window.popChart.destroy();
+        window.popChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: dataSet.map(d => d.country),
+                datasets: [{
+                    label: 'Population',
+                    data: dataSet.map(d => d.population),
+                    backgroundColor: '#999',
+                    borderColor: '#f0f0f0',
+                    borderWidth: 1
+                }]
             },
-            y: {
-              ticks: { color: '#ccc' },
-              grid: { color: '#333' }
+            options: {
+                scales: {
+                    y: {
+                        ticks: {
+                            color: '#ccc'
+                        },
+                        beginAtZero: true
+                    },
+                    x: {
+                        ticks: {
+                            color: '#ccc'
+                        }
+                    }
+                }
             }
-          }
-        }
-      });
+        });
     }
 
-    function updateStatistics(data) {
-      const pops = data.map(d => d.population);
-      const stats = {
-        count: pops.length,
-        sum: math.sum(pops),
-        mean: math.mean(pops),
-        median: math.median(pops),
-        std: math.std(pops),
-        min: math.min(pops),
-        max: math.max(pops)
-      };
-      statsDiv.innerHTML = `
-        <h3>Statistical Summary</h3>
-        <p>Total Countries: ${stats.count}</p>
-        <p>Total Population: ${stats.sum.toLocaleString()}</p>
-        <p>Mean: ${Math.round(stats.mean).toLocaleString()}</p>
-        <p>Median: ${Math.round(stats.median).toLocaleString()}</p>
-        <p>Std. Dev: ${Math.round(stats.std).toLocaleString()}</p>
-        <p>Min: ${stats.min.toLocaleString()}</p>
-        <p>Max: ${stats.max.toLocaleString()}</p>
-      `;
+    function renderMap(dataSet) {
+        const mapData = [{
+            type: 'scattergeo',
+            mode: 'markers',
+            text: dataSet.map(d => `${d.country}<br>${d.capital}<br>Pop: ${d.population.toLocaleString()}`),
+            lon: dataSet.map(d => d.lon),
+            lat: dataSet.map(d => d.lat),
+            marker: {
+                size: dataSet.map(d => Math.sqrt(d.population) / 1000),
+                color: '#ccc'
+            }
+        }];
+
+        const layout = {
+            geo: {
+                bgcolor: '#0e0e0e',
+                showland: true,
+                landcolor: '#1e1e1e'
+            },
+            paper_bgcolor: '#0e0e0e',
+            plot_bgcolor: '#0e0e0e'
+        };
+
+        Plotly.newPlot('map', mapData, layout, { responsive: true });
     }
 
-    function applyFilters() {
-      const min = Number(document.getElementById('minPop').value);
-      const max = Number(document.getElementById('maxPop').value);
-      const filtered = countries.filter(d => d.population >= min && d.population <= max);
-      renderCards(filtered);
-      renderChart(filtered);
-      updateStatistics(filtered);
+    function exportData() {
+        const headers = ['Country', 'Capital', 'Population'];
+        const rows = data.map(d => [d.country, d.capital, d.population]);
+        const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'world_data.csv';
+        a.click();
     }
 
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const country = document.getElementById('country').value;
-      const capital = document.getElementById('capital').value;
-      const population = document.getElementById('population').value;
+    document.querySelectorAll("#search, #minPop, #maxPop, #sort").forEach(el => el.addEventListener("input", filterData));
 
-      countries.push({ country, capital, population: Number(population) });
-      renderCards(countries);
-      renderChart(countries);
-      updateStatistics(countries);
-      form.reset();
-    });
-  </script></body>
-</html>
+    renderTable();
+</script>
+
+</body></html>
