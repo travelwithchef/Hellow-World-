@@ -21,14 +21,28 @@
       margin-bottom: 2rem;
       color: #ccc;
     }
-    input {
-      width: 100%;
-      padding: 1rem;
+    form {
+      background: #1a1a1a;
+      padding: 1.5rem;
+      border-radius: 12px;
+      margin-bottom: 2rem;
+    }
+    form input {
+      padding: 0.75rem;
+      margin-right: 1rem;
+      margin-bottom: 1rem;
       background: #333;
       color: #fff;
       border: none;
-      border-radius: 8px;
-      margin-bottom: 2rem;
+      border-radius: 6px;
+    }
+    form button {
+      padding: 0.75rem 1.5rem;
+      background: #888;
+      color: #000;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
     }
     .cards {
       display: grid;
@@ -40,10 +54,6 @@
       padding: 1.5rem;
       border-radius: 12px;
       box-shadow: 0 4px 12px rgba(255,255,255,0.05);
-      transition: transform 0.3s;
-    }
-    .card:hover {
-      transform: translateY(-5px);
     }
     canvas {
       margin-top: 3rem;
@@ -55,21 +65,21 @@
 </head>
 <body>
   <div class="container">
-    <h1>Country Data Visualizer</h1>
-    <input type="text" id="search" placeholder="Search for a country..." />
-    <div class="cards" id="cardContainer"></div>
-    <canvas id="populationChart"></canvas>
+    <h1>Country Data Visualizer</h1><form id="dataForm">
+  <input type="text" id="country" placeholder="Country" required />
+  <input type="text" id="capital" placeholder="Capital" required />
+  <input type="number" id="population" placeholder="Population" required />
+  <button type="submit">Add Country</button>
+</form>
+
+<div class="cards" id="cardContainer"></div>
+<canvas id="populationChart"></canvas>
+
   </div>  <script>
-    const countries = [
-      { country: 'India', capital: 'New Delhi', population: 1393409038 },
-      { country: 'USA', capital: 'Washington D.C.', population: 331893745 },
-      { country: 'Japan', capital: 'Tokyo', population: 125960000 },
-      { country: 'Germany', capital: 'Berlin', population: 83240525 },
-      { country: 'Brazil', capital: 'Brasília', population: 213993437 },
-    ];
+    let countries = [];
 
     const cardContainer = document.getElementById('cardContainer');
-    const searchInput = document.getElementById('search');
+    const form = document.getElementById('dataForm');
 
     function renderCards(data) {
       cardContainer.innerHTML = '';
@@ -79,18 +89,11 @@
         card.innerHTML = `
           <h2>${country}</h2>
           <p><strong>Capital:</strong> ${capital}</p>
-          <p><strong>Population:</strong> ${population.toLocaleString()}</p>
+          <p><strong>Population:</strong> ${Number(population).toLocaleString()}</p>
         `;
         cardContainer.appendChild(card);
       });
     }
-
-    searchInput.addEventListener('input', () => {
-      const query = searchInput.value.toLowerCase();
-      const filtered = countries.filter(c => c.country.toLowerCase().includes(query));
-      renderCards(filtered);
-      renderChart(filtered);
-    });
 
     function renderChart(data) {
       const ctx = document.getElementById('populationChart').getContext('2d');
@@ -125,7 +128,17 @@
       });
     }
 
-    renderCards(countries);
-    renderChart(countries);
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const country = document.getElementById('country').value;
+      const capital = document.getElementById('capital').value;
+      const population = document.getElementById('population').value;
+
+      countries.push({ country, capital, population: Number(population) });
+      renderCards(countries);
+      renderChart(countries);
+
+      form.reset();
+    });
   </script></body>
 </html>
